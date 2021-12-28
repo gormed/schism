@@ -1,16 +1,17 @@
 version: '3.9'
 services:
-  frontend:
+  api:
+    image: ${DOCKER_REGISTRY}${IMAGE_PREFIX}api:${DOCKER_TAG}
     build:
-      context: ./build
-      dockerfile: Dockerfile
+      context: ./
+      dockerfile: ./build/Dockerfile
     networks:
       - schism
     environment:
       - BUILD_ENV
     secrets:
       - source: schism.secret
-        uid: '2001'
+        uid: '999'
         mode: 0400
     deploy:
       labels:
@@ -19,9 +20,10 @@ services:
       - "traefik.frontend.rule=schism.${DOMAIN}"
       - "traefik.port=80"
   db:
+    image: ${DOCKER_REGISTRY}${IMAGE_PREFIX}sqlite:${DOCKER_TAG}
     build:
-      context: ./build
-      dockerfile: Dockerfile-sqlite
+      context: ./sqlite
+      dockerfile: ./Dockerfile
     networks:
       - schism
 
