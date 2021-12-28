@@ -1,0 +1,34 @@
+version: '3.9'
+services:
+  frontend:
+    build:
+      context: ./build
+      dockerfile: Dockerfile
+    networks:
+      - schism
+    environment:
+      - BUILD_ENV
+    secrets:
+      - source: schism.secret
+        uid: '2001'
+        mode: 0400
+    deploy:
+      labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=schism_frontend"
+      - "traefik.frontend.rule=schism.${DOMAIN}"
+      - "traefik.port=80"
+  db:
+    build:
+      context: ./build
+      dockerfile: Dockerfile-sqlite
+    networks:
+      - schism
+
+networks:
+  schism:
+
+secrets:
+  schism.secret:
+    external:
+      name: schism.secret
