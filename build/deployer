@@ -1,0 +1,112 @@
+#!/bin/bash
+#
+# This is a simple deploy helper script
+#
+# Allowed arguments are:
+#
+# - `push`: Push frontend image
+# - `pull`: Push frontend image
+# - `build`: Build all images in docker-compose.yml
+# - `up`: Start status-page via docker-compose.yml
+# - `log`: View logs of frontend container
+# - `exec`: Exec bash in frontend container
+#
+# Usage `./deployer build && ./deployer push`
+
+set -eu -o pipefail
+
+ACTION=$1
+export BUILD_ENV=${2:-development}
+SERVICE=${3:-api}
+COMMAND=sh
+
+if [[ ! -f "$ENV_FILE" ]]; then
+  echo "$ENV_FILE does not exist, run \`cp .env.sample $ENV_FILE\` to start with the default" && exit 1
+fi
+
+replaceGitHash() {
+  echo "Replacing git commit hash with the new one #$(git rev-parse --short HEAD)"
+  sed -i.bak -e s/^GIT_COMMIT=.*$/GIT_COMMIT="$GIT_COMMIT"/g "$ENV_FILE"
+}
+
+# Start a registry server (if not running) that is required to push/start for
+# the development environment (localhost:5000)
+initLocalRegistry() {
+  if [[ "$BUILD_ENV" != 'development' ]]; then
+    return
+  fi
+
+  echo "Ensuring local registry is started"
+
+  if [[ -z "$(docker ps -f "name=^/registry$" --format "{{.ID}}")" ]]; then
+    docker run -d -p 127.0.0.1:5000:5000 --restart=always --name registry registry:2
+  fi
+}
+
+# Replace git hash before we import the $ENV_FILE
+replaceGitHash
+
+# Load up .env
+set -o allexport
+[[ -f "$ENV_FILE" ]] && source "$ENV_FILE"
+set +o allexport
+
+# Make sure we have a registry
+initLocalRegistry
+
+echo "Will $ACTION for $BUILD_ENV"
+
+if [[ "$ACTION" == 'build' ]]; then
+  echo "Building all images"
+  if [[ -f "${BUILD_ENV}.docker-compose.yml" ]]; then
+    docker-compose -f docker-compose.yml -f "${BUILD_ENV}.docker-compose.yml" build
+  else
+    echo "Invalid build environment: $BUILD_ENV"
+  fi
+fi
+
+if [[ "$ACTION" == 'push' ]]; then
+  echo "Pushing image ${DOCKER_REGISTRY}${IMAGE_PREFIX}${SERVICE}:${DOCKER_TAG}"
+  docker push "${DOCKER_REGISTRY}${IMAGE_PREFIX}${SERVICE}:${DOCKER_TAG}"
+fi
+
+if [[ "$ACTION" == 'pull' ]]; then
+  echo "Pulling image ${DOCKER_REGISTRY}${IMAGE_PREFIX}${SERVICE}:${DOCKER_TAG}"
+  docker pull "${DOCKER_REGISTRY}${IMAGE_PREFIX}${SERVICE}:${DOCKER_TAG}"
+fi
+
+if [[ "$ACTION" == 'up' ]]; then
+  echo "Starting all containers"
+  if [[ -f "${BUILD_ENV}.docker-compose.yml" ]]; then
+    docker-compose -f docker-compose.yml -f "${BUILD_ENV}.docker-compose.yml" up -d
+  else
+    echo "Invalid build environment: $BUILD_ENV"
+  fi
+fi
+
+if [[ "$ACTION" == 'down' ]]; then
+  echo "Stopping all containers"
+  if [[ -f "${BUILD_ENV}.docker-compose.yml" ]]; then
+    docker-compose -f docker-compose.yml -f "${BUILD_ENV}.docker-compose.yml" down
+  else
+    echo "Invalid build environment: $BUILD_ENV"
+  fi
+fi
+
+if [[ "$ACTION" == 'logs' ]]; then
+  echo "View logs of $SERVICE"
+  if [[ -f "${BUILD_ENV}.docker-compose.yml" ]]; then
+    docker-compose -f docker-compose.yml -f "${BUILD_ENV}.docker-compose.yml" logs -f "$SERVICE"
+  else
+    echo "Invalid build environment: $BUILD_ENV"
+  fi
+fi
+
+if [[ "$ACTION" == 'exec' ]]; then
+  echo "Exec into $SERVICE"
+  if [[ -f "${BUILD_ENV}.docker-compose.yml" ]]; then
+    docker-compose -f docker-compose.yml -f "${BUILD_ENV}.docker-compose.yml" exec "$SERVICE"
+  else
+    echo "Invalid build environment: $BUILD_ENV"
+  fi
+fi

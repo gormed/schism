@@ -10,7 +10,7 @@ services:
     environment:
       - BUILD_ENV
     secrets:
-      - source: schism.secret
+      - source: schism.api.secret
         uid: '999'
         mode: 0400
     deploy:
@@ -31,6 +31,5 @@ networks:
   schism:
 
 secrets:
-  schism.secret:
-    external:
-      name: schism.secret
+  schism.api.secret:
+    file: .secrets/schism.api.secret
