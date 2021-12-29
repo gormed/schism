@@ -5,9 +5,10 @@ import (
 	"os"
 	"os/signal"
 
-	util "gitlab.void-ptr.org/go/lateralus/pkg/util"
+	_util "gitlab.void-ptr.org/go/lateralus/pkg/util"
 	"gitlab.void-ptr.org/go/schism/pkg/api/router"
 	"gitlab.void-ptr.org/go/schism/pkg/db"
+	"gitlab.void-ptr.org/go/schism/pkg/util"
 )
 
 func main() {
@@ -30,7 +31,7 @@ func main() {
 		util.Log.Panic(err)
 	}
 
-	if err := util.Serve(ctx, router.SchismRouter(), func() {}); err != nil {
+	if err := _util.Serve(ctx, router.SchismRouter(), func() {}); err != nil {
 		util.Log.Errorf("failed to serve:+%v\n", err)
 	}
 }
