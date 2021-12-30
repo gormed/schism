@@ -13,7 +13,7 @@ func Create() error {
 		return nil
 	}
 
-	db, err := sql.Open("sqlite3", "simple.sqlite")
+	db, err := sql.Open("sqlite3", "./schism.sqlite")
 	if err != nil {
 		Conn = db
 	}

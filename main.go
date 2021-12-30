@@ -5,7 +5,7 @@ import (
 	"os"
 	"os/signal"
 
-	_util "gitlab.void-ptr.org/go/lateralus/pkg/util"
+	"gitlab.void-ptr.org/go/reflection/pkg/server"
 	"gitlab.void-ptr.org/go/schism/pkg/api/router"
 	"gitlab.void-ptr.org/go/schism/pkg/db"
 	"gitlab.void-ptr.org/go/schism/pkg/util"
@@ -26,12 +26,16 @@ func main() {
 		cancel()
 	}()
 
+	// Setup db connection
 	err := db.Create()
 	if err != nil {
 		util.Log.Panic(err)
 	}
-
-	if err := _util.Serve(ctx, router.SchismRouter(), func() {}); err != nil {
+	s := server.NewSaveServer(util.Log)
+	if err := s.Serve(ctx, router.SchismRouter(), func() {
+		// Close db connection
+		db.Conn.Close()
+	}); err != nil {
 		util.Log.Errorf("failed to serve:+%v\n", err)
 	}
 }

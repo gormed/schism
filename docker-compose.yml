@@ -9,6 +9,8 @@ services:
       - schism
     environment:
       - BUILD_ENV
+      - GIT_COMMIT
+      - GIT_TAG
     secrets:
       - source: schism.api.secret
         uid: '999'
@@ -19,13 +21,11 @@ services:
       - "traefik.docker.network=schism_frontend"
       - "traefik.frontend.rule=schism.${DOMAIN}"
       - "traefik.port=80"
-  db:
-    image: ${DOCKER_REGISTRY}${IMAGE_PREFIX}sqlite:${DOCKER_TAG}
-    build:
-      context: ./sqlite
-      dockerfile: ./Dockerfile
-    networks:
-      - schism
+    volumes:
+      - sqlite:/db:rw
+
+volumes:
+  sqlite:
 
 networks:
   schism:
