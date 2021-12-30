@@ -10,11 +10,15 @@ import (
 	"gitlab.void-ptr.org/go/schism/pkg/db"
 )
 
-const ContextKeyDevice = "device"
+type ContextKey string
 
+const ContextKeyDevice ContextKey = "device"
+
+// AuthMiddleware checks if a request contains the x-schism-token header and attaches the according device
 type AuthMiddleware struct {
 }
 
+// NewAuthMiddleware creates a new middleware instance
 func NewAuthMiddleware() *AuthMiddleware {
 	return &AuthMiddleware{}
 }

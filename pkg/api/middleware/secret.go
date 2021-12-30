@@ -7,10 +7,12 @@ import (
 	"gitlab.void-ptr.org/go/schism/pkg/api/errors"
 )
 
+// SecretMiddleware checks if the x-schism-secret header is containing the API secret
 type SecretMiddleware struct {
 	ApiSecret string
 }
 
+// NewSecretMiddleware creates a new middleware instance
 func NewSecretMiddleware(secret string) *SecretMiddleware {
 	return &SecretMiddleware{secret}
 }

@@ -32,11 +32,9 @@ func SchismRouter() *mux.Router {
 	logMiddleware := _middleware.NewLogMiddleware(util.Log)
 	r.Use(logMiddleware.Func())
 
+	// Create our middlewares
 	secretMiddleware := middleware.NewSecretMiddleware(api.ApiSecret)
-	r.Use(secretMiddleware.Func())
-
 	authMiddleware := middleware.NewAuthMiddleware()
-	r.Use(authMiddleware.Func())
 
 	if api.Features.Devices.Enabled {
 		routerMap.Devices = map[string]interface{}{
@@ -45,10 +43,23 @@ func SchismRouter() *mux.Router {
 			"PATCH":  "/devices/{id}",
 			"DELETE": "/devices/{id}",
 		}
-		r.HandleFunc("/devices/{id}", handler.MakeGetDevice()).Methods("GET", "OPTIONS")
-		r.HandleFunc("/devices", handler.MakePostDevice()).Methods("POST", "OPTIONS")
-		r.HandleFunc("/devices/{id}", handler.MakePatchDevice()).Methods("PATCH", "OPTIONS")
-		r.HandleFunc("/devices/{id}", handler.MakeDeleteDevice()).Methods("DELETE", "OPTIONS")
+
+		// Public device route (POST)
+		publicDeviceRouter := r.NewRoute().Subrouter()
+
+		publicDeviceRouter.Use(secretMiddleware.Func())
+
+		publicDeviceRouter.HandleFunc("/devices", handler.MakePostDevice()).Methods("POST", "OPTIONS")
+
+		// Private device routes (GET, PATCH, DELETE)
+		privateDeviceRouter := r.NewRoute().Subrouter()
+
+		privateDeviceRouter.Use(secretMiddleware.Func())
+		privateDeviceRouter.Use(authMiddleware.Func())
+
+		privateDeviceRouter.HandleFunc("/devices/{id}", handler.MakeGetDevice()).Methods("GET", "OPTIONS")
+		privateDeviceRouter.HandleFunc("/devices/{id}", handler.MakePatchDevice()).Methods("PATCH", "OPTIONS")
+		privateDeviceRouter.HandleFunc("/devices/{id}", handler.MakeDeleteDevice()).Methods("DELETE", "OPTIONS")
 	}
 
 	// Write out api infos
@@ -94,7 +105,7 @@ func MakeDefaultHandler(routes routesMap) func(w http.ResponseWriter, r *http.Re
 			}
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
-			fmt.Fprintf(w, string(json))
+			fmt.Fprintf(w, "%s", string(json))
 		}
 	}
 }

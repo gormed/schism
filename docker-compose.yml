@@ -8,9 +8,9 @@ services:
     networks:
       - schism
     environment:
-      - BUILD_ENV
-      - GIT_COMMIT
-      - GIT_TAG
+      - BUILD_ENV=${BUILD_ENV}
+      - GIT_COMMIT=${GIT_COMMIT}
+      - GIT_TAG=${GIT_TAG}
     secrets:
       - source: schism.api.secret
         uid: '999'
