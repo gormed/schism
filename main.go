@@ -27,16 +27,17 @@ func main() {
 	}()
 
 	// Setup db connection
-	db.DB = db.NewSqlite()
-	err := db.DB.Create()
+	db := db.NewSqlite()
+	err := db.Create()
 	if err != nil {
 		util.Log.Panic(err)
 		return
 	}
+
 	s := server.NewSaveServer(util.Log)
-	if err := s.Serve(ctx, router.SchismRouter(), func() {
+	if err := s.Serve(ctx, router.SchismRouter(db), func() {
 		// Close db connection
-		db.DB.Close()
+		db.Close()
 	}); err != nil {
 		util.Log.Errorf("failed to serve:+%v\n", err)
 	}

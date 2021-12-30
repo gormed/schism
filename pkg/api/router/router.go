@@ -11,6 +11,7 @@ import (
 	"gitlab.void-ptr.org/go/schism/pkg/api/handler"
 	"gitlab.void-ptr.org/go/schism/pkg/api/meta"
 	"gitlab.void-ptr.org/go/schism/pkg/api/middleware"
+	"gitlab.void-ptr.org/go/schism/pkg/db"
 	"gitlab.void-ptr.org/go/schism/pkg/util"
 )
 
@@ -19,8 +20,14 @@ type routesMap struct {
 }
 
 var routerMap = routesMap{}
+var Database *db.Sqlite = nil
 
-func SchismRouter() *mux.Router {
+func SchismRouter(db *db.Sqlite) *mux.Router {
+	if db == nil {
+		util.Log.Fatalf("no database given for initialization")
+	}
+
+	Database = db
 	api.ApiSecret = api.ReadSecret("schism.api.secret")
 	r := mux.NewRouter()
 
@@ -43,13 +50,16 @@ func SchismRouter() *mux.Router {
 			"PATCH":  "/devices/{id}",
 			"DELETE": "/devices/{id}",
 		}
+		deviceHandler := &handler.DeviceHandler{
+			Database: Database,
+		}
 
 		// Public device route (POST)
 		publicDeviceRouter := r.NewRoute().Subrouter()
 
 		publicDeviceRouter.Use(secretMiddleware.Func())
 
-		publicDeviceRouter.HandleFunc("/devices", handler.MakePostDevice()).Methods("POST", "OPTIONS")
+		publicDeviceRouter.HandleFunc("/devices", deviceHandler.MakePostDevice()).Methods("POST", "OPTIONS")
 
 		// Private device routes (GET, PATCH, DELETE)
 		privateDeviceRouter := r.NewRoute().Subrouter()
@@ -57,9 +67,9 @@ func SchismRouter() *mux.Router {
 		privateDeviceRouter.Use(secretMiddleware.Func())
 		privateDeviceRouter.Use(authMiddleware.Func())
 
-		privateDeviceRouter.HandleFunc("/devices/{id}", handler.MakeGetDevice()).Methods("GET", "OPTIONS")
-		privateDeviceRouter.HandleFunc("/devices/{id}", handler.MakePatchDevice()).Methods("PATCH", "OPTIONS")
-		privateDeviceRouter.HandleFunc("/devices/{id}", handler.MakeDeleteDevice()).Methods("DELETE", "OPTIONS")
+		privateDeviceRouter.HandleFunc("/devices/{id}", deviceHandler.MakeGetDevice()).Methods("GET", "OPTIONS")
+		privateDeviceRouter.HandleFunc("/devices/{id}", deviceHandler.MakePatchDevice()).Methods("PATCH", "OPTIONS")
+		privateDeviceRouter.HandleFunc("/devices/{id}", deviceHandler.MakeDeleteDevice()).Methods("DELETE", "OPTIONS")
 	}
 
 	// Write out api infos
@@ -68,6 +78,11 @@ func SchismRouter() *mux.Router {
 	// Not found handler
 	r.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
+	})
+
+	// Method not allowed handler
+	r.MethodNotAllowedHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusMethodNotAllowed)
 	})
 
 	return r

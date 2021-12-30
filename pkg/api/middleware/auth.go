@@ -26,12 +26,14 @@ func NewAuthMiddleware() *AuthMiddleware {
 func (m *AuthMiddleware) Func() mux.MiddlewareFunc {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Check if device is authenticated
 			device, err := GetAuthenticatedDevice(r)
+			// Reject on any error
 			if err != nil {
 				http.Error(w, errors.StatusUnauthorized, http.StatusUnauthorized)
 				return
 			}
-
+			// Attach authenticated device to request context
 			ctxWithUser := context.WithValue(r.Context(), ContextKeyDevice, device)
 			rWithUser := r.WithContext(ctxWithUser)
 			next.ServeHTTP(w, rWithUser)
@@ -41,27 +43,17 @@ func (m *AuthMiddleware) Func() mux.MiddlewareFunc {
 
 func GetAuthenticatedDevice(r *http.Request) (*business.Device, error) {
 	token := r.Header.Get("x-schism-token")
-	// Get device id from token
-	queryStmt := "SELECT device_id FROM accesstokens where id = ?"
-	stmt, err := db.DB.Prepare(queryStmt)
+	// Authenticate with accesstoken
+	accesstoken := &business.Accesstoken{}
+	accesstoken, _, err := accesstoken.Authenticate(token)
 	if err != nil {
 		return nil, err
 	}
-	var deviceId string
-	err = stmt.QueryRow(token).Scan(&deviceId)
+	// Read device via accesstokens device_id
+	device := &business.Device{Identifyable: db.Identifyable{Id: &accesstoken.DeviceId}}
+	device, _, err = device.Read()
 	if err != nil {
 		return nil, err
 	}
-	// Get device
-	queryStmt = "SELECT id, name FROM devices where id = ?"
-	stmt, err = db.DB.Prepare(queryStmt)
-	if err != nil {
-		return nil, err
-	}
-	var device business.Device
-	err = stmt.QueryRow(deviceId).Scan(&device.Id, &device.Name)
-	if err != nil {
-		return nil, err
-	}
-	return &device, nil
+	return device, nil
 }
