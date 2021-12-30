@@ -43,7 +43,7 @@ func GetAuthenticatedDevice(r *http.Request) (*business.Device, error) {
 	token := r.Header.Get("x-schism-token")
 	// Get device id from token
 	queryStmt := "SELECT device_id FROM accesstokens where id = ?"
-	stmt, err := db.Conn.Prepare(queryStmt)
+	stmt, err := db.DB.Prepare(queryStmt)
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +54,7 @@ func GetAuthenticatedDevice(r *http.Request) (*business.Device, error) {
 	}
 	// Get device
 	queryStmt = "SELECT id, name FROM devices where id = ?"
-	stmt, err = db.Conn.Prepare(queryStmt)
+	stmt, err = db.DB.Prepare(queryStmt)
 	if err != nil {
 		return nil, err
 	}
