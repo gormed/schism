@@ -13,11 +13,15 @@ import (
 const Table = "accesstokens"
 
 type Accesstoken struct {
-	db.Identifyable
+	db.SqlIdentifyable
 	Token     *string   `json:"token"`
 	DeviceId  string    `json:"device_id"`
 	CreatedAt time.Time `json:"date_created"`
 	UpdatedAt time.Time `json:"date_updated"`
+}
+
+func NewAccesstoken(id *string, database *db.Sqlite) *Accesstoken {
+	return &Accesstoken{SqlIdentifyable: db.SqlIdentifyable{Id: id, Database: database}}
 }
 
 // Exists an accesstoken
@@ -115,7 +119,7 @@ func (a *Accesstoken) Read() (*Accesstoken, int, error) {
 		util.Log.Panic(err.Error())
 	}
 
-	a = &Accesstoken{Identifyable: db.Identifyable{
+	a = &Accesstoken{SqlIdentifyable: db.SqlIdentifyable{
 		Id: a.Id,
 	}}
 	var token, deviceId string

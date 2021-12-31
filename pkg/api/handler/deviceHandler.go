@@ -34,8 +34,7 @@ func (dh *DeviceHandler) ReadDevice() func(w http.ResponseWriter, r *http.Reques
 			http.Error(w, errors.StatusForbidden, http.StatusForbidden)
 			return
 		}
-
-		device := &business.Device{Identifyable: db.Identifyable{Id: &deviceId, Database: dh.Database}}
+		device := business.NewDevice(&deviceId, dh.Database)
 		device, status, err := device.Read()
 		if err != nil {
 			http.Error(w, err.Error(), status)
@@ -62,7 +61,7 @@ func (dh *DeviceHandler) CreateDevice() func(w http.ResponseWriter, r *http.Requ
 			return
 		}
 
-		device := &business.Device{Identifyable: db.Identifyable{Database: dh.Database}}
+		device := business.NewDevice(nil, dh.Database)
 		device, status, err := device.Create(&deviceCreate)
 		if err != nil {
 			http.Error(w, err.Error(), status)
@@ -96,8 +95,7 @@ func (dh *DeviceHandler) UpdateDevice() func(w http.ResponseWriter, r *http.Requ
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-
-		device := &business.Device{Identifyable: db.Identifyable{Id: &deviceId, Database: dh.Database}}
+		device := business.NewDevice(&deviceId, dh.Database)
 		device, status, err := device.Update(&deviceUpdate)
 		if err != nil {
 			http.Error(w, err.Error(), status)
@@ -124,8 +122,7 @@ func (dh *DeviceHandler) DeleteDevice() func(w http.ResponseWriter, r *http.Requ
 			http.Error(w, errors.StatusForbidden, http.StatusForbidden)
 			return
 		}
-
-		device := &business.Device{Identifyable: db.Identifyable{Id: &deviceId, Database: dh.Database}}
+		device := business.NewDevice(&deviceId, dh.Database)
 		device, status, err := device.Delete()
 		if err != nil {
 			http.Error(w, err.Error(), status)
@@ -157,15 +154,15 @@ func (dh *DeviceHandler) LoginDevice() func(w http.ResponseWriter, r *http.Reque
 			return
 		}
 
-		token := &business.Accesstoken{Identifyable: db.Identifyable{Database: dh.Database}}
-		token, status, err := token.Create(&business.AccesstokenCreate{DeviceId: deviceId})
+		accesstoken := business.NewAccesstoken(nil, dh.Database)
+		accesstoken, status, err := accesstoken.Create(&business.AccesstokenCreate{DeviceId: deviceId})
 		if err != nil {
 			http.Error(w, err.Error(), status)
 			return
 		}
 
 		w.WriteHeader(status)
-		err = json.NewEncoder(w).Encode(token)
+		err = json.NewEncoder(w).Encode(accesstoken)
 		if err != nil {
 			util.Log.Panic(err.Error())
 		}

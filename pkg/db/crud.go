@@ -1,7 +1,7 @@
 package db
 
-// Identifyable defines the minimum CRUD resource
-type Identifyable struct {
+// SqlIdentifyable defines the minimum CRUD resource
+type SqlIdentifyable struct {
 	Database *Sqlite `json:"-"`
 	Id       *string `json:"id"`
 }
@@ -10,8 +10,8 @@ type Identifyable struct {
 type CRUD interface {
 	Exists() (bool, error)
 
-	Create() (*Identifyable, int, error)
-	Read() (*Identifyable, int, error)
-	Update() (*Identifyable, int, error)
-	Delete() (*Identifyable, int, error)
+	Create() (*SqlIdentifyable, int, error)
+	Read() (*SqlIdentifyable, int, error)
+	Update() (*SqlIdentifyable, int, error)
+	Delete() (*SqlIdentifyable, int, error)
 }

@@ -48,14 +48,14 @@ func (m *AuthMiddleware) Func() mux.MiddlewareFunc {
 func (m *AuthMiddleware) getAuthenticatedDevice(r *http.Request, token string) (*business.Accesstoken, *business.Device, int, error) {
 
 	// Authenticate with accesstoken
-	accesstoken := &business.Accesstoken{Identifyable: db.Identifyable{Database: m.Database}}
+	accesstoken := &business.Accesstoken{SqlIdentifyable: db.SqlIdentifyable{Database: m.Database}}
 	accesstoken, status, err := accesstoken.Authenticate(token)
 	if err != nil {
 		return nil, nil, status, err
 	}
 
 	// Read device via accesstokens device_id
-	device := &business.Device{Identifyable: db.Identifyable{Id: &accesstoken.DeviceId, Database: m.Database}}
+	device := &business.Device{SqlIdentifyable: db.SqlIdentifyable{Id: &accesstoken.DeviceId, Database: m.Database}}
 	device, status, err = device.Read()
 	if err != nil {
 		util.Log.Panic(err.Error())
