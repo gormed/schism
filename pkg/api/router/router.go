@@ -16,7 +16,7 @@ import (
 )
 
 type routesMap struct {
-	Devices map[string]interface{} `json:"devices"`
+	Devices map[string][]string `json:"devices"`
 }
 
 var routerMap = routesMap{}
@@ -41,25 +41,23 @@ func SchismRouter(db *db.Sqlite) *mux.Router {
 
 	// Create our middlewares
 	secretMiddleware := middleware.NewSecretMiddleware(api.ApiSecret)
-	authMiddleware := middleware.NewAuthMiddleware()
+	authMiddleware := middleware.NewAuthMiddleware(Database)
 
 	if api.Features.Devices.Enabled {
-		routerMap.Devices = map[string]interface{}{
-			"GET":    "/devices/{id}",
-			"POST":   "/devices",
-			"PATCH":  "/devices/{id}",
-			"DELETE": "/devices/{id}",
+		routerMap.Devices = map[string][]string{
+			"/devices":            {"POST"},
+			"/devices/{id}":       {"GET", "PATCH", "DELETE"},
+			"/devices/{id}/login": {"POST"},
 		}
-		deviceHandler := &handler.DeviceHandler{
-			Database: Database,
-		}
+		deviceHandler := &handler.DeviceHandler{Database: Database}
 
 		// Public device route (POST)
 		publicDeviceRouter := r.NewRoute().Subrouter()
 
 		publicDeviceRouter.Use(secretMiddleware.Func())
 
-		publicDeviceRouter.HandleFunc("/devices", deviceHandler.MakePostDevice()).Methods("POST", "OPTIONS")
+		publicDeviceRouter.HandleFunc("/devices", deviceHandler.CreateDevice()).Methods("POST", "OPTIONS")
+		publicDeviceRouter.HandleFunc("/devices/{id}/login", deviceHandler.LoginDevice()).Methods("POST", "OPTIONS")
 
 		// Private device routes (GET, PATCH, DELETE)
 		privateDeviceRouter := r.NewRoute().Subrouter()
@@ -67,9 +65,9 @@ func SchismRouter(db *db.Sqlite) *mux.Router {
 		privateDeviceRouter.Use(secretMiddleware.Func())
 		privateDeviceRouter.Use(authMiddleware.Func())
 
-		privateDeviceRouter.HandleFunc("/devices/{id}", deviceHandler.MakeGetDevice()).Methods("GET", "OPTIONS")
-		privateDeviceRouter.HandleFunc("/devices/{id}", deviceHandler.MakePatchDevice()).Methods("PATCH", "OPTIONS")
-		privateDeviceRouter.HandleFunc("/devices/{id}", deviceHandler.MakeDeleteDevice()).Methods("DELETE", "OPTIONS")
+		privateDeviceRouter.HandleFunc("/devices/{id}", deviceHandler.ReadDevice()).Methods("GET", "OPTIONS")
+		privateDeviceRouter.HandleFunc("/devices/{id}", deviceHandler.UpdateDevice()).Methods("PATCH", "OPTIONS")
+		privateDeviceRouter.HandleFunc("/devices/{id}", deviceHandler.DeleteDevice()).Methods("DELETE", "OPTIONS")
 	}
 
 	// Write out api infos

@@ -5,10 +5,13 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"gitlab.void-ptr.org/go/schism/pkg/api"
 	"gitlab.void-ptr.org/go/schism/pkg/api/errors"
-	"gitlab.void-ptr.org/go/schism/pkg/api/middleware"
+	"gitlab.void-ptr.org/go/schism/pkg/api/headers"
+	"gitlab.void-ptr.org/go/schism/pkg/api/permissions"
 	"gitlab.void-ptr.org/go/schism/pkg/business"
 	"gitlab.void-ptr.org/go/schism/pkg/db"
+	"gitlab.void-ptr.org/go/schism/pkg/util"
 )
 
 type DeviceRequest struct {
@@ -16,25 +19,18 @@ type DeviceRequest struct {
 }
 
 type DeviceHandler struct {
-	Database *db.Sqlite
+	Database *db.Sqlite `json:"-"`
 }
 
-func (dh *DeviceHandler) hasPermission(w http.ResponseWriter, r *http.Request, deviceId string) bool {
-	self := r.Context().Value(middleware.ContextKeyDevice).(*business.Device)
-	if *self.Id != deviceId {
-		http.Error(w, errors.StatusForbidden, http.StatusForbidden)
-		return false
-	}
-	return true
-}
-
-// MakeGetDevice ...
-func (dh *DeviceHandler) MakeGetDevice() func(w http.ResponseWriter, r *http.Request) {
+// ReadDevice ...
+func (dh *DeviceHandler) ReadDevice() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 
+		// Get parameters
 		deviceId := mux.Vars(r)["id"]
-		if !dh.hasPermission(w, r, deviceId) {
+
+		if !permissions.HasPermission(w, r, deviceId) {
 			http.Error(w, errors.StatusForbidden, http.StatusForbidden)
 			return
 		}
@@ -49,13 +45,13 @@ func (dh *DeviceHandler) MakeGetDevice() func(w http.ResponseWriter, r *http.Req
 		w.WriteHeader(status)
 		err = json.NewEncoder(w).Encode(device)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			util.Log.Panic(err.Error())
 		}
 	}
 }
 
-// MakePostDevice ...
-func (dh *DeviceHandler) MakePostDevice() func(w http.ResponseWriter, r *http.Request) {
+// CreateDevice ...
+func (dh *DeviceHandler) CreateDevice() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 
@@ -76,18 +72,20 @@ func (dh *DeviceHandler) MakePostDevice() func(w http.ResponseWriter, r *http.Re
 		w.WriteHeader(status)
 		err = json.NewEncoder(w).Encode(device)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			util.Log.Panic(err.Error())
 		}
 	}
 }
 
-// MakePatchDevice ...
-func (dh *DeviceHandler) MakePatchDevice() func(w http.ResponseWriter, r *http.Request) {
+// UpdateDevice ...
+func (dh *DeviceHandler) UpdateDevice() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 
+		// Get parameters
 		deviceId := mux.Vars(r)["id"]
-		if !dh.hasPermission(w, r, deviceId) {
+
+		if !permissions.HasPermission(w, r, deviceId) {
 			http.Error(w, errors.StatusForbidden, http.StatusForbidden)
 			return
 		}
@@ -109,18 +107,20 @@ func (dh *DeviceHandler) MakePatchDevice() func(w http.ResponseWriter, r *http.R
 		w.WriteHeader(status)
 		err = json.NewEncoder(w).Encode(device)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			util.Log.Panic(err.Error())
 		}
 	}
 }
 
-// MakeDeleteDevice ...
-func (dh *DeviceHandler) MakeDeleteDevice() func(w http.ResponseWriter, r *http.Request) {
+// DeleteDevice ...
+func (dh *DeviceHandler) DeleteDevice() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 
+		// Get parameters
 		deviceId := mux.Vars(r)["id"]
-		if !dh.hasPermission(w, r, deviceId) {
+
+		if !permissions.HasPermission(w, r, deviceId) {
 			http.Error(w, errors.StatusForbidden, http.StatusForbidden)
 			return
 		}
@@ -135,7 +135,39 @@ func (dh *DeviceHandler) MakeDeleteDevice() func(w http.ResponseWriter, r *http.
 		w.WriteHeader(status)
 		err = json.NewEncoder(w).Encode(device)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			util.Log.Panic(err.Error())
+		}
+	}
+}
+
+// LoginDevice ...
+func (dh *DeviceHandler) LoginDevice() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+
+		// Get parameters
+		deviceId := mux.Vars(r)["id"]
+
+		// Get secret header
+		secret := r.Header.Get(headers.HeaderSchismSecret)
+
+		// Check for the valid api secret
+		if api.ApiSecret != secret {
+			http.Error(w, errors.StatusForbidden, http.StatusForbidden)
+			return
+		}
+
+		token := &business.Accesstoken{Identifyable: db.Identifyable{Database: dh.Database}}
+		token, status, err := token.Create(&business.AccesstokenCreate{DeviceId: deviceId})
+		if err != nil {
+			http.Error(w, err.Error(), status)
+			return
+		}
+
+		w.WriteHeader(status)
+		err = json.NewEncoder(w).Encode(token)
+		if err != nil {
+			util.Log.Panic(err.Error())
 		}
 	}
 }

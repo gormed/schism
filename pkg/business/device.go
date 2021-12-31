@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"gitlab.void-ptr.org/go/schism/pkg/db"
+	"gitlab.void-ptr.org/go/schism/pkg/util"
 )
 
 type DeviceSupport struct {
@@ -15,8 +16,10 @@ type DeviceSupport struct {
 
 type Device struct {
 	db.Identifyable
-	Name    string `json:"name"`
-	MacAddr string `json:"mac_address"`
+	Name      string    `json:"name"`
+	MacAddr   string    `json:"mac_address"`
+	CreatedAt time.Time `json:"date_created"`
+	UpdatedAt time.Time `json:"date_updated"`
 }
 
 func (d *Device) Exists() (bool, error) {
@@ -27,7 +30,8 @@ func (d *Device) Exists() (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	row := stmt.QueryRow(*d.Id)
+	id := *d.Id
+	row := stmt.QueryRow(id)
 	if err := row.Err(); err != nil {
 		return false, err
 	}
@@ -44,27 +48,31 @@ func (d *Device) Create(create *DeviceCreate) (*Device, int, error) {
 	if d.Id != nil {
 		return nil, http.StatusBadRequest, fmt.Errorf("the device was already created with id '%s'", *d.Id)
 	}
+
+	// Create new unique id for device
 	u, err := uuid.NewUUID()
 	if err != nil {
-		return nil, http.StatusInternalServerError, err
+		util.Log.Panic(err.Error())
 	}
 	id := u.String()
 	d.Id = &id
 
 	stmt, err := d.Database.Prepare("INSERT INTO devices (id, name, mac_address, date_created, date_updated) VALUES (?, ?, ?, ?, ?)")
 	if err != nil {
-		return nil, http.StatusInternalServerError, err
+		util.Log.Panic(err.Error())
 	}
 
 	tNow := time.Now()
 	now := tNow.UTC().Format(db.DateLayout)
 	_, err = stmt.Exec(d.Id, create.Name, create.MacAddr, now, now)
 	if err != nil {
-		return nil, http.StatusInternalServerError, err
+		util.Log.Panic(err.Error())
 	}
 
 	d.Name = create.Name
 	d.MacAddr = create.MacAddr
+	d.CreatedAt = tNow
+	d.UpdatedAt = tNow
 
 	return d, http.StatusCreated, nil
 }
@@ -74,18 +82,39 @@ func (d *Device) Read() (*Device, int, error) {
 	if d.Id == nil {
 		return nil, http.StatusBadRequest, fmt.Errorf("no device id given to read")
 	}
+	id := *d.Id
 
-	stmt, err := d.Database.Prepare("SELECT name, mac_address FROM devices WHERE id = ?")
+	// Check if resource exists
+	exists, err := d.Exists()
 	if err != nil {
-		return nil, http.StatusInternalServerError, err
+		util.Log.Panic(err.Error())
+	}
+	if !exists {
+		return d, http.StatusNotFound, fmt.Errorf("device with id '%s' does not exist", id)
 	}
 
-	device := Device{Identifyable: db.Identifyable{
-		Id: d.Id,
-	}}
-	err = stmt.QueryRow(*device.Id).Scan(&device.Name, &device.MacAddr)
+	stmt, err := d.Database.Prepare("SELECT name, mac_address, date_created, date_updated FROM devices WHERE id = ?")
 	if err != nil {
-		return nil, http.StatusInternalServerError, err
+		util.Log.Panic(err.Error())
+	}
+
+	device := Device{Identifyable: db.Identifyable{Id: &id}}
+
+	var name, mac_addr, date_created, date_updated string
+	err = stmt.QueryRow(*device.Id).Scan(&name, &mac_addr, &date_created, &date_updated)
+	if err != nil {
+		util.Log.Panic(err.Error())
+	}
+
+	device.Name = name
+	device.MacAddr = mac_addr
+	device.CreatedAt, err = time.Parse(db.DateLayout, date_created)
+	if err != nil {
+		util.Log.Panic(err.Error())
+	}
+	device.UpdatedAt, err = time.Parse(db.DateLayout, date_updated)
+	if err != nil {
+		util.Log.Panic(err.Error())
 	}
 
 	return &device, http.StatusOK, nil
@@ -101,14 +130,15 @@ func (d *Device) Update(update *DeviceUpdate) (*Device, int, error) {
 	if d.Id == nil {
 		return nil, http.StatusBadRequest, fmt.Errorf("no device id given to update")
 	}
+	id := *d.Id
 
 	// Check if resource exists
 	exists, err := d.Exists()
 	if err != nil {
-		return nil, http.StatusInternalServerError, err
+		util.Log.Panic(err.Error())
 	}
 	if !exists {
-		return d, http.StatusNotFound, fmt.Errorf("device with id '%s' does not exist", *d.Id)
+		return d, http.StatusNotFound, fmt.Errorf("device with id '%s' does not exist", id)
 	}
 
 	// Update resource properties
@@ -118,24 +148,25 @@ func (d *Device) Update(update *DeviceUpdate) (*Device, int, error) {
 	if update.MacAddr != nil {
 		d.MacAddr = *update.MacAddr
 	}
-
 	tNow := time.Now()
+	d.UpdatedAt = tNow
 	now := tNow.UTC().Format(db.DateLayout)
-	stmt, err := d.Database.Prepare("UPDATE devices SET name = ?, max_address = ?, date_updated = ? where id = ?")
+
+	stmt, err := d.Database.Prepare("UPDATE devices SET name = ?, mac_address = ?, date_updated = ? where id = ?")
 	if err != nil {
-		return nil, http.StatusInternalServerError, err
+		util.Log.Panic(err.Error())
 	}
-	result, err := stmt.Exec(d.Name, d.MacAddr, now, *d.Id)
+	result, err := stmt.Exec(d.Name, d.MacAddr, now, id)
 	if err != nil {
-		return nil, http.StatusInternalServerError, err
+		util.Log.Panic(err.Error())
 	}
 
 	rows, err := result.RowsAffected()
 	if err != nil {
-		return nil, http.StatusInternalServerError, err
+		util.Log.Panic(err.Error())
 	}
 	if rows != 1 {
-		return nil, http.StatusInternalServerError, fmt.Errorf("update affected %d rows, only one expected", rows)
+		util.Log.Panicf("update affected %d rows, only one expected", rows)
 	}
 
 	return d, http.StatusOK, nil
@@ -146,29 +177,30 @@ func (d *Device) Delete() (*Device, int, error) {
 	if d.Id == nil {
 		return nil, http.StatusBadRequest, fmt.Errorf("no device id given to update")
 	}
+	id := *d.Id
 
 	exists, err := d.Exists()
 	if err != nil {
-		return nil, http.StatusInternalServerError, err
+		util.Log.Panic(err.Error())
 	}
 	if !exists {
-		return d, http.StatusNotFound, fmt.Errorf("device with id '%s' does not exist", *d.Id)
+		return d, http.StatusNotFound, fmt.Errorf("device with id '%s' does not exist", id)
 	}
 
 	stmt, err := d.Database.Prepare("DELETE FROM devices WHERE id = ?")
 	if err != nil {
-		return nil, http.StatusInternalServerError, err
+		util.Log.Panic(err.Error())
 	}
-	result, err := stmt.Exec(*d.Id)
+	result, err := stmt.Exec(id)
 	if err != nil {
-		return nil, http.StatusInternalServerError, err
+		util.Log.Panic(err.Error())
 	}
 	rows, err := result.RowsAffected()
 	if err != nil {
-		return nil, http.StatusInternalServerError, err
+		util.Log.Panic(err.Error())
 	}
 	if rows != 1 {
-		return nil, http.StatusInternalServerError, fmt.Errorf("delete affected %d rows, only one expected", rows)
+		util.Log.Panicf("delete affected %d rows, only one expected", rows)
 	}
 	return d, http.StatusOK, nil
 }
