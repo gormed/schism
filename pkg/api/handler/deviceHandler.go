@@ -171,3 +171,32 @@ func (dh *DeviceHandler) LoginDevice() func(w http.ResponseWriter, r *http.Reque
 		}
 	}
 }
+
+// LogoutDevice ...
+func (dh *DeviceHandler) LogoutDevice() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+
+		// Get parameters
+		deviceId := mux.Vars(r)["id"]
+
+		if !permissions.HasPermission(w, r, deviceId) {
+			http.Error(w, errors.StatusForbidden, http.StatusForbidden)
+			return
+		}
+
+		accesstoken := r.Context().Value(api.ContextKeyToken).(*business.Accesstoken)
+		accesstoken, status, err := accesstoken.Delete()
+		if err != nil {
+			util.Log.Panic(err.Error())
+		}
+
+		token := ""
+		accesstoken.Token = &token
+		w.WriteHeader(status)
+		err = json.NewEncoder(w).Encode(accesstoken)
+		if err != nil {
+			util.Log.Panic(err.Error())
+		}
+	}
+}
