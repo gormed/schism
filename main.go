@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"os/signal"
 
@@ -26,18 +27,31 @@ func main() {
 		cancel()
 	}()
 
-	// Setup db connection
-	db := db.NewSqlite()
-	err := db.Create()
+	// Setup sqlite connection
+	sqlite := db.NewSqlite()
+	err := sqlite.Create()
+	if err != nil {
+		util.Log.Panic(err)
+		return
+	}
+
+	var influxHost = os.Getenv("INFLUXDB_HOST")
+	var influxPort = os.Getenv("INFLUXDB_PORT")
+	var influxOrg = os.Getenv("DOCKER_INFLUXDB_INIT_ORG")
+	var influxBucket = os.Getenv("DOCKER_INFLUXDB_INIT_BUCKET")
+
+	influxdb := db.NewInflux(fmt.Sprintf("http://%s:%s", influxHost, influxPort), influxOrg, influxBucket)
+	err = influxdb.Create()
 	if err != nil {
 		util.Log.Panic(err)
 		return
 	}
 
 	s := server.NewSaveServer(util.Log)
-	if err := s.Serve(ctx, router.SchismRouter(db), func() {
+	if err := s.Serve(ctx, router.SchismRouter(sqlite, influxdb), func() {
 		// Close db connection
-		db.Close()
+		sqlite.Close()
+		influxdb.Close()
 	}); err != nil {
 		util.Log.Errorf("failed to serve:+%v\n", err)
 	}

@@ -17,17 +17,16 @@ import (
 
 type routesMap struct {
 	Devices map[string][]string `json:"devices"`
+	Data    map[string][]string `json:"data"`
 }
 
 var routerMap = routesMap{}
-var Database *db.Sqlite = nil
 
-func SchismRouter(db *db.Sqlite) *mux.Router {
-	if db == nil {
+func SchismRouter(sqlite *db.Sqlite, influxdb *db.Influx) *mux.Router {
+	if sqlite == nil {
 		util.Log.Fatalf("no database given for initialization")
 	}
 
-	Database = db
 	api.ApiSecret = api.ReadSecret("schism.api.secret")
 	r := mux.NewRouter()
 
@@ -41,7 +40,7 @@ func SchismRouter(db *db.Sqlite) *mux.Router {
 
 	// Create our middlewares
 	secretMiddleware := middleware.NewSecretMiddleware(api.ApiSecret)
-	authMiddleware := middleware.NewAuthMiddleware(Database)
+	authMiddleware := middleware.NewAuthMiddleware(sqlite)
 
 	if api.Features.Devices.Enabled {
 		routerMap.Devices = map[string][]string{
@@ -49,7 +48,7 @@ func SchismRouter(db *db.Sqlite) *mux.Router {
 			"/devices/{id}":       {"GET", "PATCH", "DELETE"},
 			"/devices/{id}/login": {"POST"},
 		}
-		deviceHandler := &handler.DeviceHandler{Database: Database}
+		deviceHandler := &handler.DeviceHandler{Database: sqlite}
 
 		// Public device route (POST)
 		publicDeviceRouter := r.NewRoute().Subrouter()
@@ -70,11 +69,27 @@ func SchismRouter(db *db.Sqlite) *mux.Router {
 		privateDeviceRouter.HandleFunc("/devices/{id}", deviceHandler.DeleteDevice()).Methods("DELETE", "OPTIONS")
 	}
 
+	if api.Features.Data.Enabled {
+		routerMap.Data = map[string][]string{
+			"/data":          {"POST"},
+			"/data/{source}": {"GET"},
+		}
+		dataHandler := &handler.DataHandler{Database: influxdb}
+		privateDataRouter := r.NewRoute().Subrouter()
+
+		privateDataRouter.Use(secretMiddleware.Func())
+		privateDataRouter.Use(authMiddleware.Func())
+
+		privateDataRouter.HandleFunc("/data", dataHandler.CreateData()).Methods("POST", "OPTIONS")
+		privateDataRouter.HandleFunc("/data/{deviceId}/{source}", dataHandler.ReadData()).Methods("GET", "OPTIONS")
+	}
+
 	// Write out api infos
 	r.HandleFunc("/", MakeDefaultHandler(routerMap)).Methods("GET", "OPTIONS")
 
 	// Not found handler
 	r.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		util.Log.Info(r.URL.String())
 		w.WriteHeader(http.StatusNotFound)
 	})
 
