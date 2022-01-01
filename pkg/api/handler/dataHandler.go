@@ -3,7 +3,6 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/gorilla/mux"
 	"gitlab.void-ptr.org/go/schism/pkg/api/errors"
@@ -63,38 +62,20 @@ func (dh *DataHandler) ReadData() func(w http.ResponseWriter, r *http.Request) {
 		}
 
 		var read = &business.DataRead{}
-		start := r.URL.Query().Get("start")
-		if len(start) < 1 {
-			startTime, err := time.Parse(db.DateLayout, start)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
-			}
-			read.Start = startTime
-		} else {
-			read.Start = time.Now()
-		}
-		end := r.URL.Query().Get("end")
-		if len(end) < 1 {
-			endTime, err := time.Parse(db.DateLayout, end)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
-			}
-			read.End = endTime
-		} else {
-			read.End = time.Now()
-		}
+		read.Start = r.URL.Query().Get("start")
+		read.Stop = r.URL.Query().Get("stop")
 
 		data := business.NewData(dh.Database)
 		data.DeviceId = deviceId
 		data.Source = source
-		data, status, err := data.Read(read)
+		result, status, err := data.Read(read)
 		if err != nil {
 			http.Error(w, err.Error(), status)
 			return
 		}
 
 		w.WriteHeader(status)
-		err = json.NewEncoder(w).Encode(data)
+		err = json.NewEncoder(w).Encode(result)
 		if err != nil {
 			util.Log.Panic(err.Error())
 		}

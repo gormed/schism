@@ -7,7 +7,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-var DateLayout = "2006-01-02T15:04:05-0700"
+var SqliteDateLayout = "2006-01-02T15:04:05-0700"
 
 type Sqlite struct {
 	conn *sql.DB

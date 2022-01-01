@@ -9,6 +9,8 @@ import (
 	"github.com/influxdata/influxdb-client-go/api"
 )
 
+var InfluxDateLayout = "2006-01-02T15:04:05Z"
+
 type InfluxIdentifyable struct {
 	Database *Influx `json:"-"`
 }

@@ -68,7 +68,7 @@ func (a *Accesstoken) Create(create *AccesstokenCreate) (*Accesstoken, int, erro
 	}
 
 	tNow := time.Now()
-	now := tNow.UTC().Format(db.DateLayout)
+	now := tNow.UTC().Format(db.SqliteDateLayout)
 
 	stmt, err := a.Database.Prepare(fmt.Sprintf("INSERT INTO %s (id, device_id, token, date_created, date_updated) VALUES (?, ?, ?, ? ,?)", Table))
 	if err != nil {

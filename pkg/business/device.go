@@ -67,7 +67,7 @@ func (d *Device) Create(create *DeviceCreate) (*Device, int, error) {
 	}
 
 	tNow := time.Now()
-	now := tNow.UTC().Format(db.DateLayout)
+	now := tNow.UTC().Format(db.SqliteDateLayout)
 	_, err = stmt.Exec(d.Id, create.Name, create.MacAddr, now, now)
 	if err != nil {
 		util.Log.Panic(err.Error())
@@ -112,11 +112,11 @@ func (d *Device) Read() (*Device, int, error) {
 
 	device.Name = name
 	device.MacAddr = mac_addr
-	device.CreatedAt, err = time.Parse(db.DateLayout, date_created)
+	device.CreatedAt, err = time.Parse(db.SqliteDateLayout, date_created)
 	if err != nil {
 		util.Log.Panic(err.Error())
 	}
-	device.UpdatedAt, err = time.Parse(db.DateLayout, date_updated)
+	device.UpdatedAt, err = time.Parse(db.SqliteDateLayout, date_updated)
 	if err != nil {
 		util.Log.Panic(err.Error())
 	}
@@ -154,7 +154,7 @@ func (d *Device) Update(update *DeviceUpdate) (*Device, int, error) {
 	}
 	tNow := time.Now()
 	d.UpdatedAt = tNow
-	now := tNow.UTC().Format(db.DateLayout)
+	now := tNow.UTC().Format(db.SqliteDateLayout)
 
 	stmt, err := d.Database.Prepare("UPDATE devices SET name = ?, mac_address = ?, date_updated = ? where id = ?")
 	if err != nil {
