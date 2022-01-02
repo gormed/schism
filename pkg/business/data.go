@@ -8,6 +8,7 @@ import (
 	"time"
 
 	influxdb2 "github.com/influxdata/influxdb-client-go"
+	_business "gitlab.void-ptr.org/go/reflection/pkg/business"
 	"gitlab.void-ptr.org/go/reflection/pkg/sensors"
 	"gitlab.void-ptr.org/go/schism/pkg/db"
 	"gitlab.void-ptr.org/go/schism/pkg/util"
@@ -18,31 +19,19 @@ type DataSupport struct {
 }
 
 type Data struct {
-	db.InfluxIdentifyable
-	DeviceId  string    `json:"device_id"`
-	Source    string    `json:"source"`
-	DataType  DataType  `json:"data_type"`
-	Payload   string    `json:"payload"`
-	CreatedAt time.Time `json:"date_created"`
-	UpdatedAt time.Time `json:"date_updated"`
+	*_business.Data
+	Database *db.Influx `json:"-"`
 }
 
 func NewData(database *db.Influx) *Data {
-	return &Data{InfluxIdentifyable: db.InfluxIdentifyable{Database: database}}
+	return &Data{Data: _business.NewData(), Database: database}
 }
 
-type DataType int
-
-const SensorValueType = "SensorValue"
-const (
-	SensorValue DataType = iota
-)
-
 type DataCreate struct {
-	DeviceId string   `json:"device_id"`
-	Source   string   `json:"source"`
-	DataType DataType `json:"data_type"`
-	Payload  string   `json:"payload"`
+	DeviceId string             `json:"device_id"`
+	Source   string             `json:"source"`
+	DataType _business.DataType `json:"data_type"`
+	Payload  string             `json:"payload"`
 }
 
 func (d *Data) Create(create *DataCreate) (*Data, int, error) {
@@ -55,7 +44,7 @@ func (d *Data) Create(create *DataCreate) (*Data, int, error) {
 	d.UpdatedAt = now
 
 	switch create.DataType {
-	case SensorValue:
+	case _business.SensorValue:
 		var payload map[string]sensors.SensorValue
 		err := json.Unmarshal([]byte(d.Payload), &payload)
 		if err != nil {
@@ -65,7 +54,7 @@ func (d *Data) Create(create *DataCreate) (*Data, int, error) {
 			tags := map[string]string{
 				"deviceId": d.DeviceId,
 				"source":   d.Source,
-				"type":     SensorValueType,
+				"type":     _business.SensorValueType,
 				"name":     name,
 				"unit":     val.Unit,
 				"unitName": val.UnitName,

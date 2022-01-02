@@ -11,10 +11,6 @@ import (
 
 var InfluxDateLayout = "2006-01-02T15:04:05Z"
 
-type InfluxIdentifyable struct {
-	Database *Influx `json:"-"`
-}
-
 type Influx struct {
 	ServerURL string
 	Org       string

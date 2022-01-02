@@ -8,5 +8,5 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/influxdata/influxdb-client-go v1.4.0
 	github.com/mattn/go-sqlite3 v1.14.9
-	gitlab.void-ptr.org/go/reflection v0.0.5
+	gitlab.void-ptr.org/go/reflection v0.0.12
 )

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	_business "gitlab.void-ptr.org/go/reflection/pkg/business"
 	"gitlab.void-ptr.org/go/schism/pkg/db"
 	"gitlab.void-ptr.org/go/schism/pkg/util"
 )
@@ -13,15 +14,16 @@ import (
 const Table = "accesstokens"
 
 type Accesstoken struct {
-	db.SqlIdentifyable
-	Token     *string   `json:"token"`
-	DeviceId  string    `json:"device_id"`
-	CreatedAt time.Time `json:"date_created"`
-	UpdatedAt time.Time `json:"date_updated"`
+	*_business.Accesstoken
+	Database  *db.Sqlite `json:"-"`
+	Token     *string    `json:"token"`
+	DeviceId  string     `json:"device_id"`
+	CreatedAt time.Time  `json:"date_created"`
+	UpdatedAt time.Time  `json:"date_updated"`
 }
 
 func NewAccesstoken(id *string, database *db.Sqlite) *Accesstoken {
-	return &Accesstoken{SqlIdentifyable: db.SqlIdentifyable{Id: id, Database: database}}
+	return &Accesstoken{Accesstoken: _business.NewAccesstoken(id), Database: database}
 }
 
 // Exists an accesstoken
@@ -119,9 +121,7 @@ func (a *Accesstoken) Read() (*Accesstoken, int, error) {
 		util.Log.Panic(err.Error())
 	}
 
-	a = &Accesstoken{SqlIdentifyable: db.SqlIdentifyable{
-		Id: a.Id,
-	}}
+	a = NewAccesstoken(a.Id, a.Database)
 	var token, deviceId string
 	err = stmt.QueryRow(*a.Id).Scan(&token, &deviceId)
 	if err != nil {

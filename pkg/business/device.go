@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	_business "gitlab.void-ptr.org/go/reflection/pkg/business"
 	"gitlab.void-ptr.org/go/schism/pkg/db"
 	"gitlab.void-ptr.org/go/schism/pkg/util"
 )
@@ -15,15 +16,12 @@ type DeviceSupport struct {
 }
 
 type Device struct {
-	db.SqlIdentifyable
-	Name      string    `json:"name"`
-	MacAddr   string    `json:"mac_address"`
-	CreatedAt time.Time `json:"date_created"`
-	UpdatedAt time.Time `json:"date_updated"`
+	*_business.Device
+	Database *db.Sqlite `json:"-"`
 }
 
 func NewDevice(id *string, database *db.Sqlite) *Device {
-	return &Device{SqlIdentifyable: db.SqlIdentifyable{Id: id, Database: database}}
+	return &Device{Device: _business.NewDevice(id), Database: database}
 }
 
 func (d *Device) Exists() (bool, error) {
@@ -102,7 +100,7 @@ func (d *Device) Read() (*Device, int, error) {
 		util.Log.Panic(err.Error())
 	}
 
-	device := Device{SqlIdentifyable: db.SqlIdentifyable{Id: &id}}
+	device := NewDevice(&id, d.Database)
 
 	var name, mac_addr, date_created, date_updated string
 	err = stmt.QueryRow(*device.Id).Scan(&name, &mac_addr, &date_created, &date_updated)
@@ -121,7 +119,7 @@ func (d *Device) Read() (*Device, int, error) {
 		util.Log.Panic(err.Error())
 	}
 
-	return &device, http.StatusOK, nil
+	return device, http.StatusOK, nil
 }
 
 type DeviceUpdate struct {
