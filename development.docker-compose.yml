@@ -10,6 +10,11 @@ services:
     ports:
       - 8080:8080
       - 2345:2345
+
   influxdb:
     ports:
       - 8086:8086
+
+  grafana:
+    ports:
+      - 3000:3000
