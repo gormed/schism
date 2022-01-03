@@ -67,6 +67,7 @@ func SchismRouter(sqlite *db.Sqlite, influxdb *db.Influx) *mux.Router {
 		privateDeviceRouter.HandleFunc("/devices/{id}", deviceHandler.ReadDevice()).Methods("GET", "OPTIONS")
 		privateDeviceRouter.HandleFunc("/devices/{id}", deviceHandler.UpdateDevice()).Methods("PATCH", "OPTIONS")
 		privateDeviceRouter.HandleFunc("/devices/{id}", deviceHandler.DeleteDevice()).Methods("DELETE", "OPTIONS")
+		publicDeviceRouter.HandleFunc("/devices/{id}/logout", deviceHandler.LogoutDevice()).Methods("POST", "OPTIONS")
 	}
 
 	if api.Features.Data.Enabled {

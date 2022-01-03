@@ -34,12 +34,12 @@ func (a *Accesstoken) Exists() (bool, error) {
 
 	stmt, err := a.Database.Prepare(fmt.Sprintf("SELECT id from %s where token = ?", Table))
 	if err != nil {
-		util.Log.Panic(err.Error())
+		panic(err)
 	}
 
 	row := stmt.QueryRow(*a.Token)
 	if err := row.Err(); err != nil {
-		util.Log.Panic(err.Error())
+		panic(err)
 	}
 
 	return true, nil
@@ -57,7 +57,7 @@ func (a *Accesstoken) Create(create *AccesstokenCreate) (*Accesstoken, int, erro
 
 	u, err := uuid.NewUUID()
 	if err != nil {
-		util.Log.Panic(err.Error())
+		panic(err)
 	}
 
 	id := u.String()
@@ -66,7 +66,7 @@ func (a *Accesstoken) Create(create *AccesstokenCreate) (*Accesstoken, int, erro
 	// Generate new random accesstoken
 	token, err := util.RandomHex(64)
 	if err != nil {
-		util.Log.Panic(err.Error())
+		panic(err)
 	}
 
 	tNow := time.Now()
@@ -74,12 +74,12 @@ func (a *Accesstoken) Create(create *AccesstokenCreate) (*Accesstoken, int, erro
 
 	stmt, err := a.Database.Prepare(fmt.Sprintf("INSERT INTO %s (id, device_id, token, date_created, date_updated) VALUES (?, ?, ?, ? ,?)", Table))
 	if err != nil {
-		util.Log.Panic(err.Error())
+		panic(err)
 	}
 
 	_, err = stmt.Exec(a.Id, create.DeviceId, token, now, now)
 	if err != nil {
-		util.Log.Panic(err.Error())
+		panic(err)
 	}
 
 	a.DeviceId = create.DeviceId
@@ -94,14 +94,16 @@ func (a *Accesstoken) Create(create *AccesstokenCreate) (*Accesstoken, int, erro
 func (a *Accesstoken) Authenticate(token string) (*Accesstoken, int, error) {
 	stmt, err := a.Database.Prepare(fmt.Sprintf("SELECT id, device_id FROM %s WHERE token = ?", Table))
 	if err != nil {
-		util.Log.Panic(err.Error())
+		panic(err)
 	}
 
-	a = &Accesstoken{Token: &token}
+	a = NewAccesstoken(nil, a.Database)
+	a.Token = &token
+
 	var id, deviceId string
 	err = stmt.QueryRow(*a.Token).Scan(&id, &deviceId)
 	if err != nil {
-		util.Log.Panic(err.Error())
+		panic(err)
 	}
 
 	a.Id = &id
@@ -118,14 +120,14 @@ func (a *Accesstoken) Read() (*Accesstoken, int, error) {
 
 	stmt, err := a.Database.Prepare(fmt.Sprintf("SELECT token, device_id FROM %s WHERE id = ?", Table))
 	if err != nil {
-		util.Log.Panic(err.Error())
+		panic(err)
 	}
 
 	a = NewAccesstoken(a.Id, a.Database)
 	var token, deviceId string
 	err = stmt.QueryRow(*a.Id).Scan(&token, &deviceId)
 	if err != nil {
-		util.Log.Panic(err.Error())
+		panic(err)
 	}
 
 	a.Token = &token
@@ -142,7 +144,7 @@ func (a *Accesstoken) Delete() (*Accesstoken, int, error) {
 
 	exists, err := a.Exists()
 	if err != nil {
-		util.Log.Panic(err.Error())
+		panic(err)
 	}
 	if !exists {
 		return a, http.StatusNotFound, fmt.Errorf("accesstoken with id '%s' does not exist", *a.Id)
@@ -150,15 +152,15 @@ func (a *Accesstoken) Delete() (*Accesstoken, int, error) {
 
 	stmt, err := a.Database.Prepare(fmt.Sprintf("DELETE FROM %s WHERE id = ?", Table))
 	if err != nil {
-		util.Log.Panic(err.Error())
+		panic(err)
 	}
 	result, err := stmt.Exec(*a.Id)
 	if err != nil {
-		util.Log.Panic(err.Error())
+		panic(err)
 	}
 	rows, err := result.RowsAffected()
 	if err != nil {
-		util.Log.Panic(err.Error())
+		panic(err)
 	}
 	if rows != 1 {
 		util.Log.Panicf("delete affected %d rows, only one expected", rows)

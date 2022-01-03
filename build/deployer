@@ -32,7 +32,7 @@ replaceGitHash() {
 # Start a registry server (if not running) that is required to push/start for
 # the development environment (localhost:5000)
 initLocalRegistry() {
-  if [[ "$BUILD_ENV" != 'development' ]]; then
+  if [[ "$BUILD_ENV" == 'production' ]]; then
     return
   fi
 

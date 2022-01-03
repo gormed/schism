@@ -40,13 +40,8 @@ func (d *Device) Exists() (bool, error) {
 	return true, nil
 }
 
-type DeviceCreate struct {
-	Name    string `json:"name"`
-	MacAddr string `json:"mac_address"`
-}
-
 // Create device
-func (d *Device) Create(create *DeviceCreate) (*Device, int, error) {
+func (d *Device) Create(create *_business.DeviceCreate) (*Device, int, error) {
 	if d.Id != nil {
 		return nil, http.StatusBadRequest, fmt.Errorf("the device was already created with id '%s'", *d.Id)
 	}
@@ -54,21 +49,21 @@ func (d *Device) Create(create *DeviceCreate) (*Device, int, error) {
 	// Create new unique id for device
 	u, err := uuid.NewUUID()
 	if err != nil {
-		util.Log.Panic(err.Error())
+		panic(err)
 	}
 	id := u.String()
 	d.Id = &id
 
 	stmt, err := d.Database.Prepare("INSERT INTO devices (id, name, mac_address, date_created, date_updated) VALUES (?, ?, ?, ?, ?)")
 	if err != nil {
-		util.Log.Panic(err.Error())
+		panic(err)
 	}
 
 	tNow := time.Now()
 	now := tNow.UTC().Format(db.SqliteDateLayout)
 	_, err = stmt.Exec(d.Id, create.Name, create.MacAddr, now, now)
 	if err != nil {
-		util.Log.Panic(err.Error())
+		panic(err)
 	}
 
 	d.Name = create.Name
@@ -89,7 +84,7 @@ func (d *Device) Read() (*Device, int, error) {
 	// Check if resource exists
 	exists, err := d.Exists()
 	if err != nil {
-		util.Log.Panic(err.Error())
+		panic(err)
 	}
 	if !exists {
 		return d, http.StatusNotFound, fmt.Errorf("device with id '%s' does not exist", id)
@@ -97,7 +92,7 @@ func (d *Device) Read() (*Device, int, error) {
 
 	stmt, err := d.Database.Prepare("SELECT name, mac_address, date_created, date_updated FROM devices WHERE id = ?")
 	if err != nil {
-		util.Log.Panic(err.Error())
+		panic(err)
 	}
 
 	device := NewDevice(&id, d.Database)
@@ -105,30 +100,25 @@ func (d *Device) Read() (*Device, int, error) {
 	var name, mac_addr, date_created, date_updated string
 	err = stmt.QueryRow(*device.Id).Scan(&name, &mac_addr, &date_created, &date_updated)
 	if err != nil {
-		util.Log.Panic(err.Error())
+		panic(err)
 	}
 
 	device.Name = name
 	device.MacAddr = mac_addr
 	device.CreatedAt, err = time.Parse(db.SqliteDateLayout, date_created)
 	if err != nil {
-		util.Log.Panic(err.Error())
+		panic(err)
 	}
 	device.UpdatedAt, err = time.Parse(db.SqliteDateLayout, date_updated)
 	if err != nil {
-		util.Log.Panic(err.Error())
+		panic(err)
 	}
 
 	return device, http.StatusOK, nil
 }
 
-type DeviceUpdate struct {
-	Name    *string `json:"name"`
-	MacAddr *string `json:"mac_address"`
-}
-
 // Update device
-func (d *Device) Update(update *DeviceUpdate) (*Device, int, error) {
+func (d *Device) Update(update *_business.DeviceUpdate) (*Device, int, error) {
 	if d.Id == nil {
 		return nil, http.StatusBadRequest, fmt.Errorf("no device id given to update")
 	}
@@ -137,7 +127,7 @@ func (d *Device) Update(update *DeviceUpdate) (*Device, int, error) {
 	// Check if resource exists
 	exists, err := d.Exists()
 	if err != nil {
-		util.Log.Panic(err.Error())
+		panic(err)
 	}
 	if !exists {
 		return d, http.StatusNotFound, fmt.Errorf("device with id '%s' does not exist", id)
@@ -156,16 +146,16 @@ func (d *Device) Update(update *DeviceUpdate) (*Device, int, error) {
 
 	stmt, err := d.Database.Prepare("UPDATE devices SET name = ?, mac_address = ?, date_updated = ? where id = ?")
 	if err != nil {
-		util.Log.Panic(err.Error())
+		panic(err)
 	}
 	result, err := stmt.Exec(d.Name, d.MacAddr, now, id)
 	if err != nil {
-		util.Log.Panic(err.Error())
+		panic(err)
 	}
 
 	rows, err := result.RowsAffected()
 	if err != nil {
-		util.Log.Panic(err.Error())
+		panic(err)
 	}
 	if rows != 1 {
 		util.Log.Panicf("update affected %d rows, only one expected", rows)
@@ -183,7 +173,7 @@ func (d *Device) Delete() (*Device, int, error) {
 
 	exists, err := d.Exists()
 	if err != nil {
-		util.Log.Panic(err.Error())
+		panic(err)
 	}
 	if !exists {
 		return d, http.StatusNotFound, fmt.Errorf("device with id '%s' does not exist", id)
@@ -191,15 +181,15 @@ func (d *Device) Delete() (*Device, int, error) {
 
 	stmt, err := d.Database.Prepare("DELETE FROM devices WHERE id = ?")
 	if err != nil {
-		util.Log.Panic(err.Error())
+		panic(err)
 	}
 	result, err := stmt.Exec(id)
 	if err != nil {
-		util.Log.Panic(err.Error())
+		panic(err)
 	}
 	rows, err := result.RowsAffected()
 	if err != nil {
-		util.Log.Panic(err.Error())
+		panic(err)
 	}
 	if rows != 1 {
 		util.Log.Panicf("delete affected %d rows, only one expected", rows)

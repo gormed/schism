@@ -2,16 +2,17 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
+	_business "gitlab.void-ptr.org/go/reflection/pkg/business"
 	"gitlab.void-ptr.org/go/schism/pkg/api"
 	"gitlab.void-ptr.org/go/schism/pkg/api/errors"
 	"gitlab.void-ptr.org/go/schism/pkg/api/headers"
 	"gitlab.void-ptr.org/go/schism/pkg/api/permissions"
 	"gitlab.void-ptr.org/go/schism/pkg/business"
 	"gitlab.void-ptr.org/go/schism/pkg/db"
-	"gitlab.void-ptr.org/go/schism/pkg/util"
 )
 
 type DeviceRequest struct {
@@ -35,6 +36,15 @@ func (dh *DeviceHandler) ReadDevice() func(w http.ResponseWriter, r *http.Reques
 			return
 		}
 		device := business.NewDevice(&deviceId, dh.Database)
+		exists, err := device.Exists()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if !exists {
+			http.Error(w, fmt.Sprintf("device %s does not exist", deviceId), http.StatusNotFound)
+			return
+		}
 		device, status, err := device.Read()
 		if err != nil {
 			http.Error(w, err.Error(), status)
@@ -44,7 +54,7 @@ func (dh *DeviceHandler) ReadDevice() func(w http.ResponseWriter, r *http.Reques
 		w.WriteHeader(status)
 		err = json.NewEncoder(w).Encode(device)
 		if err != nil {
-			util.Log.Panic(err.Error())
+			panic(err)
 		}
 	}
 }
@@ -54,7 +64,7 @@ func (dh *DeviceHandler) CreateDevice() func(w http.ResponseWriter, r *http.Requ
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 
-		var deviceCreate business.DeviceCreate
+		var deviceCreate _business.DeviceCreate
 		err := json.NewDecoder(r.Body).Decode(&deviceCreate)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -71,7 +81,7 @@ func (dh *DeviceHandler) CreateDevice() func(w http.ResponseWriter, r *http.Requ
 		w.WriteHeader(status)
 		err = json.NewEncoder(w).Encode(device)
 		if err != nil {
-			util.Log.Panic(err.Error())
+			panic(err)
 		}
 	}
 }
@@ -89,7 +99,7 @@ func (dh *DeviceHandler) UpdateDevice() func(w http.ResponseWriter, r *http.Requ
 			return
 		}
 
-		var deviceUpdate business.DeviceUpdate
+		var deviceUpdate _business.DeviceUpdate
 		err := json.NewDecoder(r.Body).Decode(&deviceUpdate)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -105,7 +115,7 @@ func (dh *DeviceHandler) UpdateDevice() func(w http.ResponseWriter, r *http.Requ
 		w.WriteHeader(status)
 		err = json.NewEncoder(w).Encode(device)
 		if err != nil {
-			util.Log.Panic(err.Error())
+			panic(err)
 		}
 	}
 }
@@ -132,7 +142,7 @@ func (dh *DeviceHandler) DeleteDevice() func(w http.ResponseWriter, r *http.Requ
 		w.WriteHeader(status)
 		err = json.NewEncoder(w).Encode(device)
 		if err != nil {
-			util.Log.Panic(err.Error())
+			panic(err)
 		}
 	}
 }
@@ -164,7 +174,7 @@ func (dh *DeviceHandler) LoginDevice() func(w http.ResponseWriter, r *http.Reque
 		w.WriteHeader(status)
 		err = json.NewEncoder(w).Encode(accesstoken)
 		if err != nil {
-			util.Log.Panic(err.Error())
+			panic(err)
 		}
 	}
 }
@@ -185,7 +195,7 @@ func (dh *DeviceHandler) LogoutDevice() func(w http.ResponseWriter, r *http.Requ
 		accesstoken := r.Context().Value(api.ContextKeyToken).(*business.Accesstoken)
 		accesstoken, status, err := accesstoken.Delete()
 		if err != nil {
-			util.Log.Panic(err.Error())
+			panic(err)
 		}
 
 		token := ""
@@ -193,7 +203,7 @@ func (dh *DeviceHandler) LogoutDevice() func(w http.ResponseWriter, r *http.Requ
 		w.WriteHeader(status)
 		err = json.NewEncoder(w).Encode(accesstoken)
 		if err != nil {
-			util.Log.Panic(err.Error())
+			panic(err)
 		}
 	}
 }

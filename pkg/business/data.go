@@ -27,14 +27,7 @@ func NewData(database *db.Influx) *Data {
 	return &Data{Data: _business.NewData(), Database: database}
 }
 
-type DataCreate struct {
-	DeviceId string             `json:"device_id"`
-	Source   string             `json:"source"`
-	DataType _business.DataType `json:"data_type"`
-	Payload  string             `json:"payload"`
-}
-
-func (d *Data) Create(create *DataCreate) (*Data, int, error) {
+func (d *Data) Create(create *_business.DataCreate) (*Data, int, error) {
 	now := time.Now()
 	d.DeviceId = create.DeviceId
 	d.Source = create.Source
@@ -48,7 +41,7 @@ func (d *Data) Create(create *DataCreate) (*Data, int, error) {
 		var payload map[string]sensors.SensorValue
 		err := json.Unmarshal([]byte(d.Payload), &payload)
 		if err != nil {
-			util.Log.Panic(err.Error())
+			panic(err)
 		}
 		for name, val := range payload {
 			tags := map[string]string{
@@ -64,7 +57,7 @@ func (d *Data) Create(create *DataCreate) (*Data, int, error) {
 
 			err = d.Database.Write.WritePoint(context.TODO(), point)
 			if err != nil {
-				util.Log.Panic(err.Error())
+				panic(err)
 			}
 		}
 		return d, http.StatusCreated, nil
@@ -131,10 +124,10 @@ func (d *Data) Read(read *DataRead) (*ReadResponse, int, error) {
 			filter),
 	)
 	if err != nil {
-		util.Log.Panic(err.Error())
+		panic(err)
 	}
 	if result.Err() != nil {
-		util.Log.Panic(err.Error())
+		panic(err)
 	}
 
 	var res = ReadResponse{}

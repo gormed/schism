@@ -5,11 +5,11 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	_business "gitlab.void-ptr.org/go/reflection/pkg/business"
 	"gitlab.void-ptr.org/go/schism/pkg/api/errors"
 	"gitlab.void-ptr.org/go/schism/pkg/api/permissions"
 	"gitlab.void-ptr.org/go/schism/pkg/business"
 	"gitlab.void-ptr.org/go/schism/pkg/db"
-	"gitlab.void-ptr.org/go/schism/pkg/util"
 )
 
 type DataRequest struct {
@@ -25,7 +25,7 @@ func (dh *DataHandler) CreateData() func(w http.ResponseWriter, r *http.Request)
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 
-		var dataCreate business.DataCreate
+		var dataCreate _business.DataCreate
 		err := json.NewDecoder(r.Body).Decode(&dataCreate)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -42,7 +42,7 @@ func (dh *DataHandler) CreateData() func(w http.ResponseWriter, r *http.Request)
 		w.WriteHeader(status)
 		err = json.NewEncoder(w).Encode(data)
 		if err != nil {
-			util.Log.Panic(err.Error())
+			panic(err)
 		}
 	}
 }
@@ -77,7 +77,7 @@ func (dh *DataHandler) ReadData() func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(status)
 		err = json.NewEncoder(w).Encode(result)
 		if err != nil {
-			util.Log.Panic(err.Error())
+			panic(err)
 		}
 	}
 }

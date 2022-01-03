@@ -10,14 +10,13 @@ RUN apk add --no-cache \
   git bash curl sqlite g++ gcc make build-base i2c-tools linux-headers ca-certificates && \
   update-ca-certificates
 
-RUN go get -u github.com/cosmtrek/air && \
-  go get -ldflags "-s -w -extldflags '-static'" github.com/go-delve/delve/cmd/dlv
+RUN go get -u github.com/cosmtrek/air
 WORKDIR $GOPATH/src/gitlab.void-ptr.org/go/schism
 ADD . .
 
 RUN mkdir /.cache && chmod 777 . /.cache /usr/local/bin/
 
-CMD [ "air", "-c", "build/air.debug.conf" ]
+CMD [ "air", "-c", "build/air.conf" ]
 
 COPY ./build/entrypoint.sh /
 ENTRYPOINT ["/entrypoint.sh"]

@@ -9,7 +9,6 @@ import (
 	"gitlab.void-ptr.org/go/schism/pkg/api/headers"
 	"gitlab.void-ptr.org/go/schism/pkg/business"
 	"gitlab.void-ptr.org/go/schism/pkg/db"
-	"gitlab.void-ptr.org/go/schism/pkg/util"
 )
 
 // AuthMiddleware checks if a request contains the x-schism-token header and attaches the according device
@@ -58,7 +57,7 @@ func (m *AuthMiddleware) getAuthenticatedDevice(r *http.Request, token string) (
 	device := business.NewDevice(&accesstoken.DeviceId, m.Database)
 	device, status, err = device.Read()
 	if err != nil {
-		util.Log.Panic(err.Error())
+		panic(err)
 		return nil, nil, status, err
 	}
 
