@@ -1,0 +1,75 @@
+version: '3.9'
+services:
+  api:
+    image: ${DOCKER_REGISTRY}${IMAGE_PREFIX}api:${DOCKER_TAG}
+    build:
+      context: ./
+      dockerfile: ./build/Dockerfile
+    restart: unless-stopped
+    networks:
+      - schism
+    environment:
+      - BUILD_ENV=${BUILD_ENV}
+      - GIT_COMMIT=${GIT_COMMIT}
+      - GIT_TAG=${GIT_TAG}
+      - INFLUXDB_HOST=${INFLUXDB_HOST}
+      - INFLUXDB_PORT=${INFLUXDB_PORT}
+      - DOCKER_INFLUXDB_INIT_USERNAME=${DOCKER_INFLUXDB_INIT_USERNAME}
+      - DOCKER_INFLUXDB_INIT_PASSWORD=${DOCKER_INFLUXDB_INIT_PASSWORD}
+      - DOCKER_INFLUXDB_INIT_ORG=${DOCKER_INFLUXDB_INIT_ORG}
+      - DOCKER_INFLUXDB_INIT_BUCKET=${DOCKER_INFLUXDB_INIT_BUCKET}
+      - DOCKER_INFLUXDB_INIT_RETENTION=${DOCKER_INFLUXDB_INIT_RETENTION}
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN}
+    secrets:
+      - source: schism.api.secret
+        uid: '999'
+        mode: 400
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.docker.network=schism_frontend"
+        - "traefik.frontend.rule=schism.${DOMAIN}"
+        - "traefik.port=80"
+    volumes:
+      - sqlite:/db:rw
+
+  influxdb:
+    image: influxdb:2.1
+    restart: unless-stopped
+    networks:
+      - schism
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=${DOCKER_INFLUXDB_INIT_MODE}
+      - DOCKER_INFLUXDB_INIT_USERNAME=${DOCKER_INFLUXDB_INIT_USERNAME}
+      - DOCKER_INFLUXDB_INIT_PASSWORD=${DOCKER_INFLUXDB_INIT_PASSWORD}
+      - DOCKER_INFLUXDB_INIT_ORG=${DOCKER_INFLUXDB_INIT_ORG}
+      - DOCKER_INFLUXDB_INIT_BUCKET=${DOCKER_INFLUXDB_INIT_BUCKET}
+      - DOCKER_INFLUXDB_INIT_RETENTION=${DOCKER_INFLUXDB_INIT_RETENTION}
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN}
+    volumes:
+      - ./influxdb/config.yml:/etc/influxdb/influxdb.conf:ro
+      - data:/var/lib/influxdb2:rw
+
+  grafana:
+    image: grafana/grafana-oss:8.3.3
+    restart: unless-stopped
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/etc/dashboards
+    depends_on:
+      - influxdb
+    networks:
+      - schism
+
+volumes:
+  sqlite:
+  data:
+  grafana_data:
+
+networks:
+  schism:
+
+secrets:
+  schism.api.secret:
+    file: .secrets/schism.api.secret

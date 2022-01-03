@@ -1,0 +1,20 @@
+version: '3.9'
+services:
+  api:
+    image: ${DOCKER_REGISTRY}${IMAGE_PREFIX}api:${DOCKER_TAG}
+    build:
+      context: ./
+      dockerfile: ./build/debug.Dockerfile
+    volumes:
+      - ./:/go/src/gitlab.void-ptr.org/go/schism:rw,delegated
+    ports:
+      - 8080:8080
+      - 2345:2345
+
+  influxdb:
+    ports:
+      - 8086:8086
+
+  grafana:
+    ports:
+      - 3000:3000

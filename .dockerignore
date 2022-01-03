@@ -1,0 +1,7 @@
+build/*.Dockerfile
+build/Dockerfile
+.vscode
+.secrets
+.*.env
+.envrc
+schism.sqlite
