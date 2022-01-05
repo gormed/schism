@@ -92,14 +92,21 @@ func (a *Accesstoken) Create(create *AccesstokenCreate) (*Accesstoken, int, erro
 
 // Authenticate accesstoken
 func (a *Accesstoken) Authenticate(token string) (*Accesstoken, int, error) {
+	a = NewAccesstoken(nil, a.Database)
+	a.Token = &token
+
+	exists, err := a.Exists()
+	if err != nil {
+		panic(err)
+	}
+	if !exists {
+		return a, http.StatusNotFound, fmt.Errorf("accesstoken with id '%s' does not exist", *a.Id)
+	}
+
 	stmt, err := a.Database.Prepare(fmt.Sprintf("SELECT id, device_id FROM %s WHERE token = ?", Table))
 	if err != nil {
 		panic(err)
 	}
-
-	a = NewAccesstoken(nil, a.Database)
-	a.Token = &token
-
 	var id, deviceId string
 	err = stmt.QueryRow(*a.Token).Scan(&id, &deviceId)
 	if err != nil {
