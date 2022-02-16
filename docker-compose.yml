@@ -22,8 +22,6 @@ services:
       - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN}
     secrets:
       - source: schism.api.secret
-        uid: '999'
-        mode: 400
     deploy:
       labels:
         - "traefik.enable=true"
