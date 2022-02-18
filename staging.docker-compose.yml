@@ -1,0 +1,49 @@
+version: '3.9'
+services:
+  api:
+    image: ${DOCKER_REGISTRY}${IMAGE_PREFIX}api:${DOCKER_TAG}
+    build:
+      context: ./
+      dockerfile: ./build/development.Dockerfile
+    volumes:
+      - ./:/go/src/gitlab.void-ptr.org/go/schism:rw,delegated
+    ports:
+      - 8080:8080
+      - 2345:2345
+    environment:
+      - VIRTUAL_HOST=${DOMAIN:-dev.void-ptr.org}
+      - SELF_SIGNED_HOST=${DOMAIN:-dev.void-ptr.org}
+
+  influxdb:
+    ports:
+      - 8086:8086
+
+  grafana:
+    ports:
+      - 3000:3000
+    environment:
+      - VIRTUAL_HOST=${DOMAIN:-grafana.dev.void-ptr.org}
+      - SELF_SIGNED_HOST=${DOMAIN:-grafana.dev.void-ptr.dev}
+
+  nginx-proxy:
+    image: jwilder/nginx-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - frontend
+      - nginx-proxy
+    volumes:
+      - ${NGINX_FILES_PATH:-./data}/conf.d:/etc/nginx/conf.d
+      - ${NGINX_FILES_PATH:-./data}/vhost.d:/etc/nginx/vhost.d
+      - ${NGINX_FILES_PATH:-./data}/html:/usr/share/nginx/html
+      - ${NGINX_FILES_PATH:-./data}/certs:/etc/nginx/certs:ro
+      - ${NGINX_FILES_PATH:-./data}/htpasswd:/etc/nginx/htpasswd:ro
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+
+  proxy-companion:
+    restart: always
+    image: sebastienheyd/self-signed-proxy-companion
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ${NGINX_FILES_PATH:-./data}/certs:/etc/nginx/certs
