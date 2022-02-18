@@ -15,8 +15,6 @@ services:
       - VIRTUAL_PORT=8080
       - VIRTUAL_HOST=${API_DOMAIN:-dev.void-ptr.org}
       - SELF_SIGNED_HOST=${API_DOMAIN:-dev.void-ptr.org}
-      - LETSENCRYPT_HOST=${API_DOMAIN:-dev.void-ptr.org}
-      - LETSENCRYPT_EMAIL=admin@void-ptr.org
 
   influxdb:
 
@@ -27,8 +25,6 @@ services:
       - VIRTUAL_PORT=3000
       - VIRTUAL_HOST=${GRAFANA_DOMAIN:-grafana.dev.void-ptr.org}
       - SELF_SIGNED_HOST=${GRAFANA_DOMAIN:-grafana.dev.void-ptr.dev}
-      - LETSENCRYPT_HOST=${API_DOMAIN:-grafana.dev.void-ptr.org}
-      - LETSENCRYPT_EMAIL=admin@void-ptr.org
 
   nginx-proxy:
     image: jwilder/nginx-proxy
@@ -45,16 +41,12 @@ services:
       - ${NGINX_FILES_PATH:-./data}/htpasswd:/etc/nginx/htpasswd:ro
       - /var/run/docker.sock:/tmp/docker.sock:ro
 
-  letsencrypt-nginx-proxy-companion:
+  proxy-companion:
     restart: always
-    image: jrcs/letsencrypt-nginx-proxy-companion
-    networks:
-      - nginx-proxy
+    image: sebastienheyd/self-signed-proxy-companion
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ${NGINX_FILES_PATH:-./data}/certs:/etc/nginx/certs:rw
-    volumes_from:
-      - nginx-proxy
+      - ${NGINX_FILES_PATH:-./data}/certs:/etc/nginx/certs
 
 
 networks:
