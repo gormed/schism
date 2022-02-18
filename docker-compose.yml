@@ -22,12 +22,6 @@ services:
       - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN}
     secrets:
       - source: schism.api.secret
-    deploy:
-      labels:
-        - "traefik.enable=true"
-        - "traefik.docker.network=schism_frontend"
-        - "traefik.frontend.rule=schism.${DOMAIN}"
-        - "traefik.port=80"
     volumes:
       - sqlite:/db:rw
 

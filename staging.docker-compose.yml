@@ -17,12 +17,8 @@ services:
       - SELF_SIGNED_HOST=${DOMAIN:-dev.void-ptr.org}
 
   influxdb:
-    ports:
-      - 8086
 
   grafana:
-    ports:
-      - 3000
     networks:
       - nginx-proxy
     environment:
