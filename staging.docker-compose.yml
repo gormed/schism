@@ -10,6 +10,8 @@ services:
     ports:
       - 8080:8080
       - 2345:2345
+    networks:
+      - nginx-proxy
     environment:
       - VIRTUAL_HOST=${DOMAIN:-dev.void-ptr.org}
       - SELF_SIGNED_HOST=${DOMAIN:-dev.void-ptr.org}
@@ -21,6 +23,8 @@ services:
   grafana:
     ports:
       - 3000:3000
+    networks:
+      - nginx-proxy
     environment:
       - VIRTUAL_HOST=${DOMAIN:-grafana.dev.void-ptr.org}
       - SELF_SIGNED_HOST=${DOMAIN:-grafana.dev.void-ptr.dev}
@@ -31,7 +35,6 @@ services:
       - "80:80"
       - "443:443"
     networks:
-      - frontend
       - nginx-proxy
     volumes:
       - ${NGINX_FILES_PATH:-./data}/conf.d:/etc/nginx/conf.d
