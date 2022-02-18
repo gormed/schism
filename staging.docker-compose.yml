@@ -41,12 +41,16 @@ services:
       - ${NGINX_FILES_PATH:-./data}/htpasswd:/etc/nginx/htpasswd:ro
       - /var/run/docker.sock:/tmp/docker.sock:ro
 
-  proxy-companion:
+  letsencrypt-nginx-proxy-companion:
     restart: always
-    image: sebastienheyd/self-signed-proxy-companion
+    image: jrcs/letsencrypt-nginx-proxy-companion
+    networks:
+      - nginx-proxy
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ${NGINX_FILES_PATH:-./data}/certs:/etc/nginx/certs
+      - ${NGINX_FILES_PATH:-./data}/certs:/etc/nginx/certs:rw
+    volumes_from:
+      - nginx-proxy
 
 
 networks:
