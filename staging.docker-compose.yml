@@ -13,8 +13,8 @@ services:
       - nginx-proxy
     environment:
       - VIRTUAL_PORT=8080
-      - VIRTUAL_HOST=${DOMAIN:-dev.void-ptr.org}
-      - SELF_SIGNED_HOST=${DOMAIN:-dev.void-ptr.org}
+      - VIRTUAL_HOST=${API_DOMAIN:-dev.void-ptr.org}
+      - SELF_SIGNED_HOST=${API_DOMAIN:-dev.void-ptr.org}
 
   influxdb:
 
@@ -23,8 +23,8 @@ services:
       - nginx-proxy
     environment:
       - VIRTUAL_PORT=3000
-      - VIRTUAL_HOST=${DOMAIN:-grafana.dev.void-ptr.org}
-      - SELF_SIGNED_HOST=${DOMAIN:-grafana.dev.void-ptr.dev}
+      - VIRTUAL_HOST=${GRAFANA_DOMAIN:-grafana.dev.void-ptr.org}
+      - SELF_SIGNED_HOST=${GRAFANA_DOMAIN:-grafana.dev.void-ptr.dev}
 
   nginx-proxy:
     image: jwilder/nginx-proxy
