@@ -5,6 +5,8 @@ services:
     build:
       context: ./
       dockerfile: ./build/Dockerfile
+    depends_on:
+      - influxdb
     networks:
       - nginx-proxy
     environment:
@@ -13,6 +15,7 @@ services:
       - SELF_SIGNED_HOST=${API_DOMAIN:-dev.void-ptr.org}
 
   influxdb:
+    restart: unless-stopped
 
   grafana:
     networks:
