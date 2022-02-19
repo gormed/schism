@@ -10,7 +10,7 @@ datasources:
     access: proxy
     url: http://influxdb:8086
     secureJsonData:
-      token: 3c0861324c9719713f4d9caeb5887494905a7d42
+      token: 3c1261324c97197asf4d9caeb5uzx749905a7d42
     jsonData:
       version: Flux
       organization: schism
