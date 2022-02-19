@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -23,42 +22,6 @@ type DeviceHandler struct {
 	Database *db.Sqlite `json:"-"`
 }
 
-// ReadDevice ...
-func (dh *DeviceHandler) ReadDevice() func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-
-		// Get parameters
-		deviceId := mux.Vars(r)["id"]
-
-		if !permissions.HasPermission(w, r, deviceId) {
-			http.Error(w, errors.StatusForbidden, http.StatusForbidden)
-			return
-		}
-		device := business.NewDevice(&deviceId, dh.Database)
-		exists, err := device.Exists()
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		if !exists {
-			http.Error(w, fmt.Sprintf("device %s does not exist", deviceId), http.StatusNotFound)
-			return
-		}
-		device, status, err := device.Read()
-		if err != nil {
-			http.Error(w, err.Error(), status)
-			return
-		}
-
-		w.WriteHeader(status)
-		err = json.NewEncoder(w).Encode(device)
-		if err != nil {
-			panic(err)
-		}
-	}
-}
-
 // CreateDevice ...
 func (dh *DeviceHandler) CreateDevice() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -73,6 +36,33 @@ func (dh *DeviceHandler) CreateDevice() func(w http.ResponseWriter, r *http.Requ
 
 		device := business.NewDevice(nil, dh.Database)
 		device, status, err := device.Create(&deviceCreate)
+		if err != nil {
+			http.Error(w, err.Error(), status)
+			return
+		}
+
+		w.WriteHeader(status)
+		err = json.NewEncoder(w).Encode(device)
+		if err != nil {
+			panic(err)
+		}
+	}
+}
+
+// ReadDevice ...
+func (dh *DeviceHandler) ReadDevice() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+
+		// Get parameters
+		deviceId := mux.Vars(r)["id"]
+
+		if !permissions.HasPermission(w, r, deviceId) {
+			http.Error(w, errors.StatusForbidden, http.StatusForbidden)
+			return
+		}
+		device := business.NewDevice(&deviceId, dh.Database)
+		device, status, err := device.Read()
 		if err != nil {
 			http.Error(w, err.Error(), status)
 			return
