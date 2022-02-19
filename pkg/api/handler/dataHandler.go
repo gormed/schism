@@ -61,7 +61,7 @@ func (dh *DataHandler) ReadData() func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		var read = &business.DataRead{
+		var read = &_business.DataRead{
 			DeviceId: deviceId,
 			Source:   source,
 			Start:    r.URL.Query().Get("start"),

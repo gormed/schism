@@ -84,47 +84,7 @@ func (d *Data) Create(createData _business.DataCreate) (*_business.DataCreateRes
 	return response, http.StatusCreated, nil
 }
 
-type DataRead struct {
-	DeviceId string `json:"device_id"`
-	Source   string `json:"source"`
-	Start    string `json:"start"`
-	Stop     string `json:"stop"`
-}
-
-type ReadResponse struct {
-	Tables  []*TableMetadata
-	Records []*Record
-}
-
-// FluxTableMetadata holds flux query result table information represented by collection of columns.
-// Each new table is introduced by annotations
-type TableMetadata struct {
-	Position int       `json:"position"`
-	Columns  []*Column `json:"columns"`
-}
-
-// FluxColumn holds flux query table column properties
-type Column struct {
-	Index        int    `json:"index"`
-	Name         string `json:"name"`
-	DataType     string `json:"data_type"`
-	Group        bool   `json:"group"`
-	DefaultValue string `json:"default_value"`
-}
-
-// FluxRecord represents row in the flux query result table
-type Record struct {
-	Table  int                    `json:"table"`
-	Values map[string]interface{} `json:"values"`
-}
-
-type Values struct {
-	Value       interface{} `json:"_value"`
-	Field       string      `json:"_field"`
-	Measurement string      `json:"_measurment"`
-}
-
-func (d *Data) Read(read *DataRead) (*ReadResponse, int, error) {
+func (d *Data) Read(read *_business.DataRead) (*_business.DataReadResponse, int, error) {
 	queryRange := "range(start: -1h)"
 	if len(read.Start) > 0 {
 		queryRange = fmt.Sprintf("range(start: %s)", read.Start)
@@ -151,19 +111,19 @@ func (d *Data) Read(read *DataRead) (*ReadResponse, int, error) {
 		return nil, http.StatusInternalServerError, fmt.Errorf("database error")
 	}
 
-	var res = ReadResponse{}
+	var res = _business.DataReadResponse{}
 	for result.Next() {
 		// Observe when there is new grouping key producing new table
 		if result.TableChanged() {
 			fluxTableMetadata := result.TableMetadata()
 			util.Log.Debugf("table: %s\n", fluxTableMetadata.String())
 
-			tableMetadata := &TableMetadata{
+			tableMetadata := &_business.TableMetadata{
 				Position: fluxTableMetadata.Position(),
 			}
 			// Convert columns
 			for _, c := range fluxTableMetadata.Columns() {
-				tableMetadata.Columns = append(tableMetadata.Columns, &Column{
+				tableMetadata.Columns = append(tableMetadata.Columns, &_business.Column{
 					Index:        c.Index(),
 					Name:         c.Name(),
 					DataType:     c.DataType(),
@@ -175,7 +135,7 @@ func (d *Data) Read(read *DataRead) (*ReadResponse, int, error) {
 		}
 		// Convert records
 		fluxRecord := result.Record()
-		record := &Record{
+		record := &_business.Record{
 			Table:  fluxRecord.Table(),
 			Values: fluxRecord.Values(),
 		}
