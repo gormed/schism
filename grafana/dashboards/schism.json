@@ -22,7 +22,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": 1,
-  "iteration": 1645217710241,
+  "iteration": 1645258171558,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -391,7 +391,7 @@
             "type": "influxdb",
             "uid": "P2480346FC547677B"
           },
-          "query": "// v.windowPeriod is a variable referring to the current optimized window period (currently: $interval)\ndataSet = from(bucket: v.bucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.deviceId == \"${deviceId}\")\n  |> filter(fn: (r) => r.name == \"temprature\")\ndataSet\n  |> aggregateWindow(\n    every: 5m,\n    fn: (tables=<-, column) => tables |> median(method: \"exact_selector\")\n  )\n  |> drop(columns: [\"deviceId\", \"source\", \"type\"])",
+          "query": "// v.windowPeriod is a variable referring to the current optimized window period (currently: $interval)\ndataSet = from(bucket: v.bucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.deviceId == \"${deviceId}\")\n  |> filter(fn: (r) => r.name == \"temprature\")\ndataSet\n  |> aggregateWindow(\n    every: ${aggregate},\n    fn: (tables=<-, column) => tables |> median(method: \"exact_selector\")\n  )\n  |> drop(columns: [\"deviceId\", \"source\", \"type\"])",
           "refId": "Temperature"
         },
         {
@@ -400,7 +400,7 @@
             "uid": "P2480346FC547677B"
           },
           "hide": false,
-          "query": "// v.windowPeriod is a variable referring to the current optimized window period (currently: $interval)\ndataSet = from(bucket: v.bucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.deviceId == \"${deviceId}\")\n  |> filter(fn: (r) => r.name == \"humidity\")\ndataSet\n  |> aggregateWindow(\n    every: 5m,\n    fn: (tables=<-, column) => tables |> median(method: \"exact_selector\")\n  )\n  |> drop(columns: [\"deviceId\", \"source\", \"type\"])",
+          "query": "// v.windowPeriod is a variable referring to the current optimized window period (currently: $interval)\ndataSet = from(bucket: v.bucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.deviceId == \"${deviceId}\")\n  |> filter(fn: (r) => r.name == \"humidity\")\ndataSet\n  |> aggregateWindow(\n    every: ${aggregate},\n    fn: (tables=<-, column) => tables |> median(method: \"exact_selector\")\n  )\n  |> drop(columns: [\"deviceId\", \"source\", \"type\"])",
           "refId": "Humidity"
         },
         {
@@ -409,7 +409,7 @@
             "uid": "P2480346FC547677B"
           },
           "hide": false,
-          "query": "// v.windowPeriod is a variable referring to the current optimized window period (currently: $interval)\ndataSet = from(bucket: v.bucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.deviceId == \"${deviceId}\")\n  |> filter(fn: (r) => r.name == \"pressure\")\ndataSet\n  |> aggregateWindow(\n    every: 5m,\n    fn: (tables=<-, column) => tables |> median(method: \"exact_selector\")\n  )\n  |> drop(columns: [\"deviceId\", \"source\", \"type\"])",
+          "query": "// v.windowPeriod is a variable referring to the current optimized window period (currently: $interval)\ndataSet = from(bucket: v.bucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.deviceId == \"${deviceId}\")\n  |> filter(fn: (r) => r.name == \"pressure\")\ndataSet\n  |> aggregateWindow(\n    every: ${aggregate},\n    fn: (tables=<-, column) => tables |> median(method: \"exact_selector\")\n  )\n  |> drop(columns: [\"deviceId\", \"source\", \"type\"])",
           "refId": "Pressure"
         }
       ],
@@ -787,7 +787,7 @@
             "type": "influxdb",
             "uid": "P2480346FC547677B"
           },
-          "query": "// v.windowPeriod is a variable referring to the current optimized window period (currently: $interval)\ndataSet = from(bucket: v.bucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.deviceId == \"${deviceId}\")\n  |> filter(fn: (r) => r.name == \"visible\")\ndataSet\n  |> aggregateWindow(\n    every: 1m,\n    fn: (tables=<-, column) => tables |> median(method: \"exact_selector\")\n  )\n  |> drop(columns: [\"deviceId\", \"source\", \"type\"])",
+          "query": "// v.windowPeriod is a variable referring to the current optimized window period (currently: $interval)\ndataSet = from(bucket: v.bucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.deviceId == \"${deviceId}\")\n  |> filter(fn: (r) => r.name == \"visible\")\ndataSet\n  |> aggregateWindow(\n    every: ${aggregate},\n    fn: (tables=<-, column) => tables |> median(method: \"exact_selector\")\n  )\n  |> drop(columns: [\"deviceId\", \"source\", \"type\"])",
           "refId": "Visible"
         },
         {
@@ -796,7 +796,7 @@
             "uid": "P2480346FC547677B"
           },
           "hide": false,
-          "query": "// v.windowPeriod is a variable referring to the current optimized window period (currently: $interval)\ndataSet = from(bucket: v.bucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.deviceId == \"${deviceId}\")\n  |> filter(fn: (r) => r.name == \"infraRed\")\ndataSet\n  |> aggregateWindow(\n    every: 1m,\n    fn: (tables=<-, column) => tables |> median(method: \"exact_selector\")\n  )\n  |> drop(columns: [\"deviceId\", \"source\", \"type\"])",
+          "query": "// v.windowPeriod is a variable referring to the current optimized window period (currently: $interval)\ndataSet = from(bucket: v.bucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.deviceId == \"${deviceId}\")\n  |> filter(fn: (r) => r.name == \"infraRed\")\ndataSet\n  |> aggregateWindow(\n    every: ${aggregate},\n    fn: (tables=<-, column) => tables |> median(method: \"exact_selector\")\n  )\n  |> drop(columns: [\"deviceId\", \"source\", \"type\"])",
           "refId": "InfraRed"
         },
         {
@@ -805,7 +805,7 @@
             "uid": "P2480346FC547677B"
           },
           "hide": false,
-          "query": "// v.windowPeriod is a variable referring to the current optimized window period (currently: $interval)\ndataSet = from(bucket: v.bucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.deviceId == \"${deviceId}\")\n  |> filter(fn: (r) => r.name == \"ultraViolett\")\ndataSet\n  |> aggregateWindow(\n    every: 1m,\n    fn: (tables=<-, column) => tables |> median(method: \"exact_selector\")\n  )\n  |> drop(columns: [\"deviceId\", \"source\", \"type\"])",
+          "query": "// v.windowPeriod is a variable referring to the current optimized window period (currently: $interval)\ndataSet = from(bucket: v.bucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.deviceId == \"${deviceId}\")\n  |> filter(fn: (r) => r.name == \"ultraViolett\")\ndataSet\n  |> aggregateWindow(\n    every: ${aggregate},\n    fn: (tables=<-, column) => tables |> median(method: \"exact_selector\")\n  )\n  |> drop(columns: [\"deviceId\", \"source\", \"type\"])",
           "refId": "UltraViolett"
         }
       ],
@@ -909,7 +909,7 @@
             "type": "influxdb",
             "uid": "P2480346FC547677B"
           },
-          "query": "// v.bucket, v.timeRangeStart, and v.timeRange stop are all variables supported by the flux plugin and influxdb\ndataSet = from(bucket: v.bucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"name\"] == \"quality\")\n  |> filter(fn: (r) => r[\"deviceId\"] == \"${deviceId}\")\ndataSet\n  |> aggregateWindow(\n    every: 1m,\n    fn: (tables=<-, column) => tables |> median(method: \"exact_selector\")\n  )\n  |> drop(columns: [\"source\", \"type\"])",
+          "query": "// v.bucket, v.timeRangeStart, and v.timeRange stop are all variables supported by the flux plugin and influxdb\ndataSet = from(bucket: v.bucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"name\"] == \"airQuality\")\n  |> filter(fn: (r) => r[\"deviceId\"] == \"${deviceId}\")\ndataSet\n  |> aggregateWindow(\n    every: 1m,\n    fn: (tables=<-, column) => tables |> median(method: \"exact_selector\")\n  )\n  |> drop(columns: [\"source\", \"type\"])",
           "refId": "A"
         }
       ],
@@ -953,7 +953,7 @@
             "scaleDistribution": {
               "type": "linear"
             },
-            "showPoints": "auto",
+            "showPoints": "always",
             "spanNulls": 600000,
             "stacking": {
               "group": "A",
@@ -1064,7 +1064,7 @@
             "type": "influxdb",
             "uid": "P2480346FC547677B"
           },
-          "query": "// v.windowPeriod is a variable referring to the current optimized window period (currently: $interval)\ndataSet = from(bucket: v.bucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.deviceId == \"${deviceId}\")\n  |> filter(fn: (r) => r.name == \"quality\")\ndataSet\n  |> aggregateWindow(\n    every: 30s,\n    fn: (tables=<-, column) => tables |> median(method: \"exact_selector\")\n  )\n  |> drop(columns: [\"deviceId\", \"source\", \"type\"])",
+          "query": "// v.windowPeriod is a variable referring to the current optimized window period (currently: $interval)\ndataSet = from(bucket: v.bucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r.deviceId == \"${deviceId}\")\n  |> filter(fn: (r) => r.name == \"airQuality\")\ndataSet\n  |> aggregateWindow(\n    every: ${aggregate},\n    fn: (tables=<-, column) => tables |> median(method: \"exact_selector\")\n  )\n  |> drop(columns: [\"deviceId\", \"source\", \"type\"])",
           "refId": "Temperature"
         }
       ],
@@ -1134,7 +1134,7 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 8,
+        "w": 6,
         "x": 0,
         "y": 49
       },
@@ -1197,11 +1197,11 @@
               "fill": "solid"
             },
             "lineWidth": 1,
-            "pointSize": 5,
+            "pointSize": 3,
             "scaleDistribution": {
               "type": "linear"
             },
-            "showPoints": "auto",
+            "showPoints": "always",
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -1253,8 +1253,8 @@
       },
       "gridPos": {
         "h": 9,
-        "w": 16,
-        "x": 8,
+        "w": 18,
+        "x": 6,
         "y": 49
       },
       "id": 8,
@@ -1274,7 +1274,7 @@
             "type": "influxdb",
             "uid": "P2480346FC547677B"
           },
-          "query": "// v.bucket, v.timeRangeStart, and v.timeRange stop are all variables supported by the flux plugin and influxdb\ndataSet = from(bucket: v.bucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"deviceId\"] == \"${deviceId}\")\n  |> filter(fn: (r) => r[\"name\"] == \"distance\")\ndataSet\n  |> aggregateWindow(\n    every: 10s,\n    fn: (tables=<-, column) => tables |> median(method: \"exact_selector\")\n  )\n  |> drop(columns: [\"deviceId\", \"source\", \"type\"])",
+          "query": "// v.bucket, v.timeRangeStart, and v.timeRange stop are all variables supported by the flux plugin and influxdb\ndataSet = from(bucket: v.bucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"deviceId\"] == \"${deviceId}\")\n  |> filter(fn: (r) => r[\"name\"] == \"distance\")\ndataSet\n  |> aggregateWindow(\n    every: ${aggregate},\n    fn: (tables=<-, column) => tables |> median(method: \"exact_selector\")\n  )\n  |> drop(columns: [\"deviceId\", \"source\", \"type\"])",
           "refId": "A"
         }
       ],
@@ -1349,7 +1349,7 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 8,
+        "w": 6,
         "x": 0,
         "y": 59
       },
@@ -1408,12 +1408,12 @@
               "viz": false
             },
             "lineInterpolation": "smooth",
-            "lineWidth": 3,
-            "pointSize": 5,
+            "lineWidth": 1,
+            "pointSize": 4,
             "scaleDistribution": {
               "type": "linear"
             },
-            "showPoints": "auto",
+            "showPoints": "always",
             "spanNulls": true,
             "stacking": {
               "group": "A",
@@ -1472,8 +1472,8 @@
       },
       "gridPos": {
         "h": 9,
-        "w": 16,
-        "x": 8,
+        "w": 18,
+        "x": 6,
         "y": 59
       },
       "id": 23,
@@ -1495,7 +1495,7 @@
             "type": "influxdb",
             "uid": "P2480346FC547677B"
           },
-          "query": "// v.bucket, v.timeRangeStart, and v.timeRange stop are all variables supported by the flux plugin and influxdb\ndataSet = from(bucket: v.bucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"deviceId\"] == \"${deviceId}\")\n  |> filter(fn: (r) => r[\"name\"] == \"soilMoisture\")\ndataSet\n  |> drop(columns: [\"deviceId\", \"source\", \"type\", \"unit\", \"unitName\"])",
+          "query": "// v.bucket, v.timeRangeStart, and v.timeRange stop are all variables supported by the flux plugin and influxdb\ndataSet = from(bucket: v.bucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"deviceId\"] == \"${deviceId}\")\n  |> filter(fn: (r) => r[\"name\"] == \"soilMoisture\")\ndataSet\n  |> aggregateWindow(\n    every: ${aggregate},\n    fn: (tables=<-, column) => tables |> median(method: \"exact_selector\")\n  )\n  |> drop(columns: [\"deviceId\", \"source\", \"type\", \"unit\", \"unitName\"])",
           "refId": "A"
         }
       ],
@@ -1520,9 +1520,9 @@
     "list": [
       {
         "current": {
-          "selected": false,
-          "text": "46cbbd92-6c8f-11ec-a1e9-0242ac150003",
-          "value": "46cbbd92-6c8f-11ec-a1e9-0242ac150003"
+          "selected": true,
+          "text": "ed7b56de-915a-11ec-99a6-0242c0a80003",
+          "value": "ed7b56de-915a-11ec-99a6-0242c0a80003"
         },
         "datasource": {
           "type": "influxdb",
@@ -1569,6 +1569,85 @@
         "skipUrlSync": false,
         "sort": 0,
         "type": "query"
+      },
+      {
+        "auto": false,
+        "auto_count": 30,
+        "auto_min": "10s",
+        "current": {
+          "selected": false,
+          "text": "30s",
+          "value": "30s"
+        },
+        "hide": 0,
+        "name": "aggregate",
+        "options": [
+          {
+            "selected": true,
+            "text": "30s",
+            "value": "30s"
+          },
+          {
+            "selected": false,
+            "text": "1m",
+            "value": "1m"
+          },
+          {
+            "selected": false,
+            "text": "5m",
+            "value": "5m"
+          },
+          {
+            "selected": false,
+            "text": "10m",
+            "value": "10m"
+          },
+          {
+            "selected": false,
+            "text": "30m",
+            "value": "30m"
+          },
+          {
+            "selected": false,
+            "text": "1h",
+            "value": "1h"
+          },
+          {
+            "selected": false,
+            "text": "6h",
+            "value": "6h"
+          },
+          {
+            "selected": false,
+            "text": "12h",
+            "value": "12h"
+          },
+          {
+            "selected": false,
+            "text": "1d",
+            "value": "1d"
+          },
+          {
+            "selected": false,
+            "text": "7d",
+            "value": "7d"
+          },
+          {
+            "selected": false,
+            "text": "14d",
+            "value": "14d"
+          },
+          {
+            "selected": false,
+            "text": "30d",
+            "value": "30d"
+          }
+        ],
+        "query": "30s,1m,5m,10m,30m,1h,6h,12h,1d,7d,14d,30d",
+        "queryValue": "",
+        "refresh": 2,
+        "skipUrlSync": false,
+        "type": "interval"
       }
     ]
   },
@@ -1580,6 +1659,6 @@
   "timezone": "",
   "title": "Schism",
   "uid": "EP-BD-A7z",
-  "version": 52,
+  "version": 19,
   "weekStart": ""
 }
