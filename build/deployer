@@ -16,8 +16,7 @@
 set -eu -o pipefail
 
 ACTION=$1
-export BUILD_ENV=${2:-development}
-SERVICE=${3:-api}
+SERVICE=${2:-api}
 COMMAND=sh
 
 if [[ ! -f "$ENV_FILE" ]]; then
@@ -105,7 +104,7 @@ fi
 if [[ "$ACTION" == 'exec' ]]; then
   echo "Exec into $SERVICE"
   if [[ -f "${BUILD_ENV}.docker-compose.yml" ]]; then
-    docker-compose -f docker-compose.yml -f "${BUILD_ENV}.docker-compose.yml" exec "$SERVICE"
+    docker-compose -f docker-compose.yml -f "${BUILD_ENV}.docker-compose.yml" exec "$SERVICE" "$COMMAND"
   else
     echo "Invalid build environment: $BUILD_ENV"
   fi
