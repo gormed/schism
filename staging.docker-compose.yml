@@ -4,7 +4,7 @@ services:
     image: ${DOCKER_REGISTRY}${IMAGE_PREFIX}api:${DOCKER_TAG}
     build:
       context: ./
-      dockerfile: ./build/development.Dockerfile
+      dockerfile: ./build/Dockerfile
     volumes:
       - ./:/go/src/gitlab.void-ptr.org/go/schism:rw,delegated
     networks:
