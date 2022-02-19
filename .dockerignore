@@ -1,8 +1,12 @@
 build/*.Dockerfile
 build/Dockerfile
+build/deployer
 .vscode
 .secrets
 .*.env
+*.env.bak
 .envrc
 schism.sqlite
 data
+*.docker-compose.yml
+docker-compose.yml
