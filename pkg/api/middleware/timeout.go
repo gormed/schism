@@ -7,6 +7,7 @@ import (
 
 	"github.com/d2r2/go-logger"
 	"github.com/gorilla/mux"
+	"gitlab.void-ptr.org/go/schism/pkg/util"
 )
 
 type TimeOutMiddleware struct {
@@ -35,8 +36,9 @@ func (m *TimeOutMiddleware) Func() mux.MiddlewareFunc {
 			case <-done:
 				return
 			case <-ctx.Done():
-				w.WriteHeader(http.StatusRequestTimeout)
-				w.Write([]byte("request timed out"))
+				util.Log.Infof("a request timed out: %s %s", r.Method, r.URL)
+				// w.WriteHeader(http.StatusRequestTimeout)
+				// w.Write([]byte("request timed out"))
 			}
 		})
 	}
