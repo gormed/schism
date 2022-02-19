@@ -34,12 +34,14 @@ func (a *Accesstoken) Exists() (bool, error) {
 
 	stmt, err := a.Database.Prepare(fmt.Sprintf("SELECT id from %s where token = ?", Table))
 	if err != nil {
-		panic(err)
+		util.Log.Error(err)
+		return nil, http.StatusInternalServerError, fmt.Errorf("database error")
 	}
 
 	row := stmt.QueryRow(*a.Token)
 	if err := row.Err(); err != nil {
-		panic(err)
+		util.Log.Error(err)
+		return nil, http.StatusInternalServerError, fmt.Errorf("database error")
 	}
 
 	return true, nil
@@ -57,7 +59,8 @@ func (a *Accesstoken) Create(create *AccesstokenCreate) (*Accesstoken, int, erro
 
 	u, err := uuid.NewUUID()
 	if err != nil {
-		panic(err)
+		util.Log.Error(err)
+		return nil, http.StatusInternalServerError, fmt.Errorf("uuid error")
 	}
 
 	id := u.String()
@@ -66,7 +69,8 @@ func (a *Accesstoken) Create(create *AccesstokenCreate) (*Accesstoken, int, erro
 	// Generate new random accesstoken
 	token, err := util.RandomHex(64)
 	if err != nil {
-		panic(err)
+		util.Log.Error(err)
+		return nil, http.StatusInternalServerError, fmt.Errorf("token error")
 	}
 
 	tNow := time.Now()
@@ -74,12 +78,14 @@ func (a *Accesstoken) Create(create *AccesstokenCreate) (*Accesstoken, int, erro
 
 	stmt, err := a.Database.Prepare(fmt.Sprintf("INSERT INTO %s (id, device_id, token, date_created, date_updated) VALUES (?, ?, ?, ? ,?)", Table))
 	if err != nil {
-		panic(err)
+		util.Log.Error(err)
+		return nil, http.StatusInternalServerError, fmt.Errorf("database error")
 	}
 
 	_, err = stmt.Exec(a.Id, create.DeviceId, token, now, now)
 	if err != nil {
-		panic(err)
+		util.Log.Error(err)
+		return nil, http.StatusInternalServerError, fmt.Errorf("database error")
 	}
 
 	a.DeviceId = create.DeviceId
@@ -97,7 +103,8 @@ func (a *Accesstoken) Authenticate(token string) (*Accesstoken, int, error) {
 
 	exists, err := a.Exists()
 	if err != nil {
-		panic(err)
+		util.Log.Error(err)
+		return nil, http.StatusInternalServerError, fmt.Errorf("database error")
 	}
 	if !exists {
 		return a, http.StatusNotFound, fmt.Errorf("accesstoken with id '%s' does not exist", *a.Id)
@@ -105,12 +112,14 @@ func (a *Accesstoken) Authenticate(token string) (*Accesstoken, int, error) {
 
 	stmt, err := a.Database.Prepare(fmt.Sprintf("SELECT id, device_id FROM %s WHERE token = ?", Table))
 	if err != nil {
-		panic(err)
+		util.Log.Error(err)
+		return nil, http.StatusInternalServerError, fmt.Errorf("database error")
 	}
 	var id, deviceId string
 	err = stmt.QueryRow(*a.Token).Scan(&id, &deviceId)
 	if err != nil {
-		panic(err)
+		util.Log.Error(err)
+		return nil, http.StatusInternalServerError, fmt.Errorf("database error")
 	}
 
 	a.Id = &id
@@ -127,14 +136,16 @@ func (a *Accesstoken) Read() (*Accesstoken, int, error) {
 
 	stmt, err := a.Database.Prepare(fmt.Sprintf("SELECT token, device_id FROM %s WHERE id = ?", Table))
 	if err != nil {
-		panic(err)
+		util.Log.Error(err)
+		return nil, http.StatusInternalServerError, fmt.Errorf("database error")
 	}
 
 	a = NewAccesstoken(a.Id, a.Database)
 	var token, deviceId string
 	err = stmt.QueryRow(*a.Id).Scan(&token, &deviceId)
 	if err != nil {
-		panic(err)
+		util.Log.Error(err)
+		return nil, http.StatusInternalServerError, fmt.Errorf("database error")
 	}
 
 	a.Token = &token
@@ -151,7 +162,8 @@ func (a *Accesstoken) Delete() (*Accesstoken, int, error) {
 
 	exists, err := a.Exists()
 	if err != nil {
-		panic(err)
+		util.Log.Error(err)
+		return nil, http.StatusInternalServerError, fmt.Errorf("database error")
 	}
 	if !exists {
 		return a, http.StatusNotFound, fmt.Errorf("accesstoken with id '%s' does not exist", *a.Id)
@@ -159,15 +171,18 @@ func (a *Accesstoken) Delete() (*Accesstoken, int, error) {
 
 	stmt, err := a.Database.Prepare(fmt.Sprintf("DELETE FROM %s WHERE id = ?", Table))
 	if err != nil {
-		panic(err)
+		util.Log.Error(err)
+		return nil, http.StatusInternalServerError, fmt.Errorf("database error")
 	}
 	result, err := stmt.Exec(*a.Id)
 	if err != nil {
-		panic(err)
+		util.Log.Error(err)
+		return nil, http.StatusInternalServerError, fmt.Errorf("database error")
 	}
 	rows, err := result.RowsAffected()
 	if err != nil {
-		panic(err)
+		util.Log.Error(err)
+		return nil, http.StatusInternalServerError, fmt.Errorf("database error")
 	}
 	if rows != 1 {
 		util.Log.Panicf("delete affected %d rows, only one expected", rows)

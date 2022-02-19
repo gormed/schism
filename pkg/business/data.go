@@ -8,6 +8,7 @@ import (
 	"time"
 
 	influxdb2 "github.com/influxdata/influxdb-client-go"
+	"github.com/influxdata/influxdb-client-go/domain"
 	_business "gitlab.void-ptr.org/go/reflection/pkg/business"
 	"gitlab.void-ptr.org/go/reflection/pkg/sensors"
 	"gitlab.void-ptr.org/go/schism/pkg/db"
@@ -41,7 +42,8 @@ func (d *Data) Create(create *_business.DataCreate) (*Data, int, error) {
 		var payload map[string]sensors.SensorValue
 		err := json.Unmarshal([]byte(d.Payload), &payload)
 		if err != nil {
-			panic(err)
+			util.Log.Error(err)
+			return nil, http.StatusInternalServerError, fmt.Errorf("unmarshal error")
 		}
 		for name, val := range payload {
 			tags := map[string]string{
@@ -54,10 +56,16 @@ func (d *Data) Create(create *_business.DataCreate) (*Data, int, error) {
 			}
 			fields := map[string]interface{}{"value": val.Value}
 			point := influxdb2.NewPoint(d.DeviceId+"/"+d.Source, tags, fields, now)
-
+			health, err := d.Database.Client.Health(context.TODO())
+			if err != nil {
+				return nil, http.StatusInternalServerError, err
+			}
+			if health.Status != domain.HealthCheckStatusPass {
+				return nil, http.StatusInternalServerError, fmt.Errorf("influxdb not healthy")
+			}
 			err = d.Database.Write.WritePoint(context.TODO(), point)
 			if err != nil {
-				panic(err)
+				return nil, http.StatusInternalServerError, err
 			}
 		}
 		return d, http.StatusCreated, nil
@@ -124,10 +132,12 @@ func (d *Data) Read(read *DataRead) (*ReadResponse, int, error) {
 			filter),
 	)
 	if err != nil {
-		panic(err)
+		util.Log.Error(err)
+		return nil, http.StatusInternalServerError, fmt.Errorf("database error")
 	}
 	if result.Err() != nil {
-		panic(err)
+		util.Log.Error(err)
+		return nil, http.StatusInternalServerError, fmt.Errorf("database error")
 	}
 
 	var res = ReadResponse{}
