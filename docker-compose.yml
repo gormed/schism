@@ -23,7 +23,7 @@ services:
     secrets:
       - source: schism.api.secret
     volumes:
-      - sqlite:/db/schism.sqlite:rw
+      - sqlite:/db:rw
 
   influxdb:
     image: influxdb:2.1

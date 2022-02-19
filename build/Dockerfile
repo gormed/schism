@@ -30,6 +30,8 @@ RUN addgroup -S $GROUP_GO \
 
 USER $USER_GO
 
+RUN mkdir -p /db && touch /db/schism.sqlite
+
 ENTRYPOINT [ "/usr/local/bin/schism" ]
 
 # Setup the healthcheck
