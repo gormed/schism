@@ -57,7 +57,6 @@ func (m *AuthMiddleware) getAuthenticatedDevice(r *http.Request, token string) (
 	device := business.NewDevice(&accesstoken.DeviceId, m.Database)
 	device, status, err = device.Read()
 	if err != nil {
-		panic(err)
 		return nil, nil, status, err
 	}
 

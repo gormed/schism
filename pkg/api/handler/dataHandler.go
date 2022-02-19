@@ -33,14 +33,14 @@ func (dh *DataHandler) CreateData() func(w http.ResponseWriter, r *http.Request)
 		}
 
 		data := business.NewData(dh.Database)
-		data, status, err := data.Create(&dataCreate)
+		created, status, err := data.Create(dataCreate)
 		if err != nil {
 			http.Error(w, err.Error(), status)
 			return
 		}
 
 		w.WriteHeader(status)
-		err = json.NewEncoder(w).Encode(data)
+		err = json.NewEncoder(w).Encode(created)
 		if err != nil {
 			panic(err)
 		}
@@ -61,13 +61,14 @@ func (dh *DataHandler) ReadData() func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		var read = &business.DataRead{}
-		read.Start = r.URL.Query().Get("start")
-		read.Stop = r.URL.Query().Get("stop")
+		var read = &business.DataRead{
+			DeviceId: deviceId,
+			Source:   source,
+			Start:    r.URL.Query().Get("start"),
+			Stop:     r.URL.Query().Get("stop"),
+		}
 
 		data := business.NewData(dh.Database)
-		data.DeviceId = deviceId
-		data.Source = source
 		result, status, err := data.Read(read)
 		if err != nil {
 			http.Error(w, err.Error(), status)

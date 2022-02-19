@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
 	_middleware "gitlab.void-ptr.org/go/reflection/pkg/api/middleware"
@@ -37,6 +38,10 @@ func SchismRouter(sqlite *db.Sqlite, influxdb *db.Influx) *mux.Router {
 	// Setup request logging
 	logMiddleware := _middleware.NewLogMiddleware(util.Log)
 	r.Use(logMiddleware.Func())
+
+	// Setup timeout handling
+	timeOutMiddleware := middleware.NewTimeOutMiddleware(util.Log, 5*time.Second)
+	r.Use(timeOutMiddleware.Func())
 
 	// Create our middlewares
 	secretMiddleware := middleware.NewSecretMiddleware(api.ApiSecret)

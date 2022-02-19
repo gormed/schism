@@ -8,6 +8,7 @@ import (
 	"time"
 
 	influxdb2 "github.com/influxdata/influxdb-client-go"
+	"github.com/influxdata/influxdb-client-go/api/write"
 	"github.com/influxdata/influxdb-client-go/domain"
 	_business "gitlab.void-ptr.org/go/reflection/pkg/business"
 	"gitlab.void-ptr.org/go/reflection/pkg/sensors"
@@ -20,64 +21,74 @@ type DataSupport struct {
 }
 
 type Data struct {
-	*_business.Data
 	Database *db.Influx `json:"-"`
 }
 
 func NewData(database *db.Influx) *Data {
-	return &Data{Data: _business.NewData(), Database: database}
+	return &Data{Database: database}
 }
 
-func (d *Data) Create(create *_business.DataCreate) (*Data, int, error) {
+func (d *Data) Create(createData _business.DataCreate) (*_business.DataCreateResponse, int, error) {
 	now := time.Now()
-	d.DeviceId = create.DeviceId
-	d.Source = create.Source
-	d.DataType = create.DataType
-	d.Payload = create.Payload
-	d.CreatedAt = now
-	d.UpdatedAt = now
+	var points []*write.Point
+	response := &_business.DataCreateResponse{}
 
-	switch create.DataType {
-	case _business.SensorValue:
-		var payload map[string]sensors.SensorValue
-		err := json.Unmarshal([]byte(d.Payload), &payload)
-		if err != nil {
-			util.Log.Error(err)
-			return nil, http.StatusInternalServerError, fmt.Errorf("unmarshal error")
-		}
-		for name, val := range payload {
-			tags := map[string]string{
-				"deviceId": d.DeviceId,
-				"source":   d.Source,
-				"type":     _business.SensorValueType,
-				"name":     name,
-				"unit":     val.Unit,
-				"unitName": val.UnitName,
-			}
-			fields := map[string]interface{}{"value": val.Value}
-			point := influxdb2.NewPoint(d.DeviceId+"/"+d.Source, tags, fields, now)
-			health, err := d.Database.Client.Health(context.TODO())
+	for _, create := range createData.Data {
+		n := _business.NewData()
+		n.DeviceId = create.DeviceId
+		n.Source = create.Source
+		n.DataType = create.DataType
+		n.Payload = create.Payload
+		n.CreatedAt = now
+		n.UpdatedAt = now
+		response.Data = append(response.Data, n)
+
+		switch create.DataType {
+		case _business.SensorValue:
+			var payload map[string]sensors.SensorValue
+			err := json.Unmarshal([]byte(n.Payload), &payload)
 			if err != nil {
-				return nil, http.StatusInternalServerError, err
+				util.Log.Error(err)
+				return nil, http.StatusInternalServerError, fmt.Errorf("unmarshal error")
 			}
-			if health.Status != domain.HealthCheckStatusPass {
-				return nil, http.StatusInternalServerError, fmt.Errorf("influxdb not healthy")
+			for name, val := range payload {
+				tags := map[string]string{
+					"deviceId": n.DeviceId,
+					"source":   n.Source,
+					"type":     _business.SensorValueType,
+					"name":     name,
+					"unit":     val.Unit,
+					"unitName": val.UnitName,
+				}
+				fields := map[string]interface{}{"value": val.Value}
+				point := influxdb2.NewPoint(n.DeviceId+"/"+n.Source, tags, fields, now)
+				points = append(points, point)
 			}
-			err = d.Database.Write.WritePoint(context.TODO(), point)
-			if err != nil {
-				return nil, http.StatusInternalServerError, err
-			}
+		default:
+			return nil, http.StatusBadRequest, fmt.Errorf("unsupported data_type provided")
 		}
-		return d, http.StatusCreated, nil
-	default:
-		return d, http.StatusBadRequest, fmt.Errorf("unsupported data_type provided")
 	}
 
+	health, err := d.Database.Client.Health(context.TODO())
+	if err != nil {
+		return nil, http.StatusInternalServerError, err
+	}
+	if health.Status != domain.HealthCheckStatusPass {
+		return nil, http.StatusInternalServerError, fmt.Errorf("influxdb not healthy")
+	}
+	err = d.Database.Write.WritePoint(context.TODO(), points...)
+	if err != nil {
+		return nil, http.StatusInternalServerError, err
+	}
+
+	return response, http.StatusCreated, nil
 }
 
 type DataRead struct {
-	Start string `json:"start"`
-	Stop  string `json:"stop"`
+	DeviceId string `json:"device_id"`
+	Source   string `json:"source"`
+	Start    string `json:"start"`
+	Stop     string `json:"stop"`
 }
 
 type ReadResponse struct {
@@ -121,7 +132,7 @@ func (d *Data) Read(read *DataRead) (*ReadResponse, int, error) {
 	if len(read.Start) > 0 && len(read.Stop) > 0 {
 		queryRange = fmt.Sprintf("range(start: %s, stop: %s)", read.Start, read.Stop)
 	}
-	measurement := d.DeviceId + "/" + d.Source
+	measurement := read.DeviceId + "/" + read.Source
 	filter := fmt.Sprintf(`filter(fn: (r) => r._measurement == "%s")`, measurement)
 	// Get parser flux query result
 	result, err := d.Database.Query.Query(
