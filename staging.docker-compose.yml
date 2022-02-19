@@ -7,8 +7,6 @@ services:
       dockerfile: ./build/development.Dockerfile
     volumes:
       - ./:/go/src/gitlab.void-ptr.org/go/schism:rw,delegated
-    ports:
-      - 8080
     networks:
       - nginx-proxy
     environment:
