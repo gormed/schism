@@ -26,22 +26,20 @@ func NewAccesstoken(id *string, database *db.Sqlite) *Accesstoken {
 	return &Accesstoken{Accesstoken: _business.NewAccesstoken(id), Database: database}
 }
 
-// Exists an accesstoken
-func (a *Accesstoken) Exists() (bool, error) {
+// exists an accesstoken
+func (a *Accesstoken) exists() (bool, error) {
 	if a.Token == nil {
 		return false, fmt.Errorf("no accesstoken token given to read")
 	}
 
 	stmt, err := a.Database.Prepare(fmt.Sprintf("SELECT id from %s where token = ?", Table))
 	if err != nil {
-		util.Log.Error(err)
-		return nil, http.StatusInternalServerError, fmt.Errorf("database error")
+		return false, err
 	}
 
 	row := stmt.QueryRow(*a.Token)
 	if err := row.Err(); err != nil {
-		util.Log.Error(err)
-		return nil, http.StatusInternalServerError, fmt.Errorf("database error")
+		return false, err
 	}
 
 	return true, nil
@@ -101,7 +99,7 @@ func (a *Accesstoken) Authenticate(token string) (*Accesstoken, int, error) {
 	a = NewAccesstoken(nil, a.Database)
 	a.Token = &token
 
-	exists, err := a.Exists()
+	exists, err := a.exists()
 	if err != nil {
 		util.Log.Error(err)
 		return nil, http.StatusInternalServerError, fmt.Errorf("database error")
@@ -160,7 +158,7 @@ func (a *Accesstoken) Delete() (*Accesstoken, int, error) {
 		return nil, http.StatusBadRequest, fmt.Errorf("no accesstoken id given to update")
 	}
 
-	exists, err := a.Exists()
+	exists, err := a.exists()
 	if err != nil {
 		util.Log.Error(err)
 		return nil, http.StatusInternalServerError, fmt.Errorf("database error")
