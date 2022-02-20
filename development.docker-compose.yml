@@ -1,7 +1,7 @@
 version: '3.9'
 services:
-  api:
-    image: ${DOCKER_REGISTRY}${IMAGE_PREFIX}api:${DOCKER_TAG}
+  schism:
+    image: ${DOCKER_REGISTRY}${IMAGE_PREFIX}schism:${DOCKER_TAG}
     build:
       context: ./
       dockerfile: ./build/development.Dockerfile
