@@ -16,7 +16,7 @@
 set -eu -o pipefail
 
 ACTION=$1
-SERVICE=${2:-api}
+SERVICE=${2:-schism}
 COMMAND=sh
 
 if [[ ! -f "$ENV_FILE" ]]; then
