@@ -13,9 +13,6 @@ import (
 )
 
 func main() {
-	// logger.ChangePackageLogLevel("i2c", logger.InfoLevel)
-	// logger.ChangePackageLogLevel("lateralus", logger.InfoLevel)
-
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 

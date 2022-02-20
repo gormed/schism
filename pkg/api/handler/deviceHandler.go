@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -13,6 +12,7 @@ import (
 	"gitlab.void-ptr.org/go/schism/pkg/api/permissions"
 	"gitlab.void-ptr.org/go/schism/pkg/business"
 	"gitlab.void-ptr.org/go/schism/pkg/db"
+	"gitlab.void-ptr.org/go/schism/pkg/util"
 )
 
 type DeviceRequest struct {
@@ -21,42 +21,6 @@ type DeviceRequest struct {
 
 type DeviceHandler struct {
 	Database *db.Sqlite `json:"-"`
-}
-
-// ReadDevice ...
-func (dh *DeviceHandler) ReadDevice() func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-
-		// Get parameters
-		deviceId := mux.Vars(r)["id"]
-
-		if !permissions.HasPermission(w, r, deviceId) {
-			http.Error(w, errors.StatusForbidden, http.StatusForbidden)
-			return
-		}
-		device := business.NewDevice(&deviceId, dh.Database)
-		exists, err := device.Exists()
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		if !exists {
-			http.Error(w, fmt.Sprintf("device %s does not exist", deviceId), http.StatusNotFound)
-			return
-		}
-		device, status, err := device.Read()
-		if err != nil {
-			http.Error(w, err.Error(), status)
-			return
-		}
-
-		w.WriteHeader(status)
-		err = json.NewEncoder(w).Encode(device)
-		if err != nil {
-			panic(err)
-		}
-	}
 }
 
 // CreateDevice ...
@@ -73,6 +37,33 @@ func (dh *DeviceHandler) CreateDevice() func(w http.ResponseWriter, r *http.Requ
 
 		device := business.NewDevice(nil, dh.Database)
 		device, status, err := device.Create(&deviceCreate)
+		if err != nil {
+			http.Error(w, err.Error(), status)
+			return
+		}
+
+		w.WriteHeader(status)
+		err = json.NewEncoder(w).Encode(device)
+		if err != nil {
+			panic(err)
+		}
+	}
+}
+
+// ReadDevice ...
+func (dh *DeviceHandler) ReadDevice() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+
+		// Get parameters
+		deviceId := mux.Vars(r)["id"]
+
+		if !permissions.HasPermission(w, r, deviceId) {
+			http.Error(w, errors.StatusForbidden, http.StatusForbidden)
+			return
+		}
+		device := business.NewDevice(&deviceId, dh.Database)
+		device, status, err := device.Read()
 		if err != nil {
 			http.Error(w, err.Error(), status)
 			return
@@ -163,9 +154,21 @@ func (dh *DeviceHandler) LoginDevice() func(w http.ResponseWriter, r *http.Reque
 			http.Error(w, errors.StatusForbidden, http.StatusForbidden)
 			return
 		}
+		// Validate device id
+		_, err := util.IsValidUUID(deviceId)
+		if err != nil {
+			http.Error(w, errors.StatusBadRequest, http.StatusBadRequest)
+			return
+		}
+		device := business.NewDevice(&deviceId, dh.Database)
+		_, status, err := device.Read()
+		if err != nil {
+			http.Error(w, err.Error(), status)
+			return
+		}
 
 		accesstoken := business.NewAccesstoken(nil, dh.Database)
-		accesstoken, status, err := accesstoken.Create(&business.AccesstokenCreate{DeviceId: deviceId})
+		accesstoken, status, err = accesstoken.Create(&business.AccesstokenCreate{DeviceId: deviceId})
 		if err != nil {
 			http.Error(w, err.Error(), status)
 			return

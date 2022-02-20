@@ -28,6 +28,8 @@ ENV \
 RUN addgroup -S $GROUP_GO \
   && adduser -S $USER_GO -G $GROUP_GO
 
+RUN mkdir -p /db && touch /db/schism.sqlite && chown -R $USER_GO:$GROUP_GO /db
+
 USER $USER_GO
 
 ENTRYPOINT [ "/usr/local/bin/schism" ]

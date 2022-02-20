@@ -38,6 +38,10 @@ func SchismRouter(sqlite *db.Sqlite, influxdb *db.Influx) *mux.Router {
 	logMiddleware := _middleware.NewLogMiddleware(util.Log)
 	r.Use(logMiddleware.Func())
 
+	// Setup timeout handling
+	// timeOutMiddleware := middleware.NewTimeOutMiddleware(util.Log, 5*time.Second)
+	// r.Use(timeOutMiddleware.Func())
+
 	// Create our middlewares
 	secretMiddleware := middleware.NewSecretMiddleware(api.ApiSecret)
 	authMiddleware := middleware.NewAuthMiddleware(sqlite)

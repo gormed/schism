@@ -22,7 +22,7 @@ func (s *Sqlite) Create() error {
 		return nil
 	}
 
-	db, err := sql.Open("sqlite3", "./schism.sqlite")
+	db, err := sql.Open("sqlite3", "/db/schism.sqlite")
 	if err != nil {
 		return err
 	}
