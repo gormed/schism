@@ -35,7 +35,7 @@ func (d *Device) Exists() (bool, error) {
 	id := *d.Id
 	row := stmt.QueryRow(id)
 	if err := row.Err(); err != nil {
-		return false, err
+		return false, nil
 	}
 	return true, nil
 }
