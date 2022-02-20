@@ -12,6 +12,7 @@ import (
 	"gitlab.void-ptr.org/go/schism/pkg/api/permissions"
 	"gitlab.void-ptr.org/go/schism/pkg/business"
 	"gitlab.void-ptr.org/go/schism/pkg/db"
+	"gitlab.void-ptr.org/go/schism/pkg/util"
 )
 
 type DeviceRequest struct {
@@ -153,9 +154,21 @@ func (dh *DeviceHandler) LoginDevice() func(w http.ResponseWriter, r *http.Reque
 			http.Error(w, errors.StatusForbidden, http.StatusForbidden)
 			return
 		}
+		// Validate device id
+		_, err := util.IsValidUUID(deviceId)
+		if err != nil {
+			http.Error(w, errors.StatusBadRequest, http.StatusBadRequest)
+			return
+		}
+		device := business.NewDevice(&deviceId, dh.Database)
+		_, status, err := device.Read()
+		if err != nil {
+			http.Error(w, err.Error(), status)
+			return
+		}
 
 		accesstoken := business.NewAccesstoken(nil, dh.Database)
-		accesstoken, status, err := accesstoken.Create(&business.AccesstokenCreate{DeviceId: deviceId})
+		accesstoken, status, err = accesstoken.Create(&business.AccesstokenCreate{DeviceId: deviceId})
 		if err != nil {
 			http.Error(w, err.Error(), status)
 			return
