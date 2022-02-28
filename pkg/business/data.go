@@ -28,9 +28,111 @@ func NewData(database *db.Influx) *Data {
 	return &Data{Database: database}
 }
 
+func (d *Data) newSensorValuePoint(deviceId, source, name string, sensorName *string, sensorType *sensors.SensorType, sensorValue sensors.SensorValue, t time.Time) *write.Point {
+	tags := map[string]string{
+		"deviceId": deviceId,
+		"source":   source,
+		"type":     _business.SensorValueType,
+		"name":     name,
+		"unit":     sensorValue.Unit,
+		"unitName": sensorValue.UnitName,
+	}
+	if sensorType != nil {
+		tags["sensorType"] = fmt.Sprintf("%d", sensorType)
+	}
+	if sensorName != nil {
+		tags["sensorName"] = *sensorName
+	}
+	fields := map[string]interface{}{"value": sensorValue.Value}
+	return influxdb2.NewPoint(deviceId+"/"+source, tags, fields, t)
+}
+
+func (d *Data) parseSensorPayload(n *_business.Data, points []*write.Point) ([]*write.Point, int, error) {
+	switch *n.SensorType {
+	case sensors.SensorType_BMP:
+		var payload sensors.BMPSensorData
+		err := json.Unmarshal([]byte(n.Payload), &payload)
+		if err != nil {
+			util.Log.Error(err)
+			return nil, http.StatusInternalServerError, fmt.Errorf("unmarshal error")
+		}
+		for name, t := range map[string]sensors.SensorValue{
+			"temprature": *payload.Temprature,
+			"humidity":   *payload.Humidity,
+			"pressure":   *payload.Pressure,
+		} {
+			points = append(points, d.newSensorValuePoint(n.DeviceId, n.Source, name, &payload.Sensor.Name, n.SensorType, t, n.CreatedAt))
+		}
+	case sensors.SensorType_SI1145:
+		var payload sensors.SI1145SensorData
+		err := json.Unmarshal([]byte(n.Payload), &payload)
+		if err != nil {
+			util.Log.Error(err)
+			return nil, http.StatusInternalServerError, fmt.Errorf("unmarshal error")
+		}
+		for name, t := range map[string]sensors.SensorValue{
+			"infraRed":     *payload.InfraRed,
+			"ultraViolett": *payload.UltraViolett,
+			"visible":      *payload.Visible,
+		} {
+			points = append(points, d.newSensorValuePoint(n.DeviceId, n.Source, name, &payload.Sensor.Name, n.SensorType, t, n.CreatedAt))
+		}
+	case sensors.SensorType_NU40C16:
+		var payload sensors.NU40C16SensorData
+		err := json.Unmarshal([]byte(n.Payload), &payload)
+		if err != nil {
+			util.Log.Error(err)
+			return nil, http.StatusInternalServerError, fmt.Errorf("unmarshal error")
+		}
+		for name, t := range map[string]sensors.SensorValue{
+			"distance": *payload.Distance,
+		} {
+			points = append(points, d.newSensorValuePoint(n.DeviceId, n.Source, name, &payload.Sensor.Name, n.SensorType, t, n.CreatedAt))
+		}
+	case sensors.SensorType_SoilMoisture:
+		var payload sensors.SoilMoistureSensorData
+		err := json.Unmarshal([]byte(n.Payload), &payload)
+		if err != nil {
+			util.Log.Error(err)
+			return nil, http.StatusInternalServerError, fmt.Errorf("unmarshal error")
+		}
+		for name, t := range map[string]sensors.SensorValue{
+			"soilMoisture": *payload.SoilMoisture,
+		} {
+			points = append(points, d.newSensorValuePoint(n.DeviceId, n.Source, name, &payload.Sensor.Name, n.SensorType, t, n.CreatedAt))
+		}
+	case sensors.SensorType_AirQuality:
+		var payload sensors.AirQualitySensorData
+		err := json.Unmarshal([]byte(n.Payload), &payload)
+		if err != nil {
+			util.Log.Error(err)
+			return nil, http.StatusInternalServerError, fmt.Errorf("unmarshal error")
+		}
+		for name, t := range map[string]sensors.SensorValue{
+			"airQuality": *payload.AirQuality,
+		} {
+			points = append(points, d.newSensorValuePoint(n.DeviceId, n.Source, name, &payload.Sensor.Name, n.SensorType, t, n.CreatedAt))
+		}
+	case sensors.SensorType_Loudness:
+		var payload sensors.LoudnessSensorData
+		err := json.Unmarshal([]byte(n.Payload), &payload)
+		if err != nil {
+			util.Log.Error(err)
+			return nil, http.StatusInternalServerError, fmt.Errorf("unmarshal error")
+		}
+		for name, t := range map[string]sensors.SensorValue{
+			"loudness": *payload.Loudness,
+		} {
+			points = append(points, d.newSensorValuePoint(n.DeviceId, n.Source, name, &payload.Sensor.Name, n.SensorType, t, n.CreatedAt))
+		}
+	}
+	return points, http.StatusCreated, nil
+}
+
 func (d *Data) Create(createData _business.DataCreate) (*_business.DataCreateResponse, int, error) {
-	now := time.Now()
+	var status = http.StatusInternalServerError
 	var points []*write.Point
+	var err error
 	response := &_business.DataCreateResponse{}
 
 	for _, create := range createData.Data {
@@ -38,31 +140,34 @@ func (d *Data) Create(createData _business.DataCreate) (*_business.DataCreateRes
 		n.DeviceId = create.DeviceId
 		n.Source = create.Source
 		n.DataType = create.DataType
+		n.SensorType = create.SensorType
 		n.Payload = create.Payload
-		n.CreatedAt = now
-		n.UpdatedAt = now
+		n.CreatedAt = create.Meta.MeasuredAt
+		n.UpdatedAt = time.Now()
 		response.Data = append(response.Data, n)
 
 		switch create.DataType {
 		case _business.SensorValue:
-			var payload map[string]sensors.SensorValue
-			err := json.Unmarshal([]byte(n.Payload), &payload)
-			if err != nil {
-				util.Log.Error(err)
-				return nil, http.StatusInternalServerError, fmt.Errorf("unmarshal error")
-			}
-			for name, val := range payload {
-				tags := map[string]string{
-					"deviceId": n.DeviceId,
-					"source":   n.Source,
-					"type":     _business.SensorValueType,
-					"name":     name,
-					"unit":     val.Unit,
-					"unitName": val.UnitName,
+			if n.SensorType != nil {
+				points, status, err = d.parseSensorPayload(n, points)
+				if err != nil {
+					util.Log.Error(err)
+					return nil, status, err
 				}
-				fields := map[string]interface{}{"value": val.Value}
-				point := influxdb2.NewPoint(n.DeviceId+"/"+n.Source, tags, fields, now)
-				points = append(points, point)
+			} else {
+				var payload map[string]sensors.SensorValue
+				err := json.Unmarshal([]byte(n.Payload), &payload)
+				if err != nil {
+					util.Log.Error(err)
+					return nil, http.StatusInternalServerError, fmt.Errorf("unmarshal error")
+				}
+				for name, val := range payload {
+					if name == "sensor" {
+						continue
+					}
+					points = append(points, d.newSensorValuePoint(n.DeviceId, n.Source, name, nil, nil, val, n.CreatedAt))
+				}
+				status = http.StatusCreated
 			}
 		default:
 			return nil, http.StatusBadRequest, fmt.Errorf("unsupported data_type provided")
@@ -81,7 +186,7 @@ func (d *Data) Create(createData _business.DataCreate) (*_business.DataCreateRes
 		return nil, http.StatusInternalServerError, err
 	}
 
-	return response, http.StatusCreated, nil
+	return response, status, nil
 }
 
 func (d *Data) Read(read *_business.DataRead) (*_business.DataReadResponse, int, error) {
