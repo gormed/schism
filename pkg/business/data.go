@@ -28,7 +28,14 @@ func NewData(database *db.Influx) *Data {
 	return &Data{Database: database}
 }
 
-func (d *Data) newSensorValuePoint(deviceId, source, name string, sensorName *string, sensorType *sensors.SensorType, sensorValue sensors.SensorValue, t time.Time) *write.Point {
+func (d *Data) newSensorValuePoint(
+	deviceId, source, name string,
+	sensorName *string,
+	sensorType *sensors.SensorType,
+	sensorValue sensors.SensorValue,
+	t time.Time,
+) *write.Point {
+	// Influxdb tags
 	tags := map[string]string{
 		"deviceId": deviceId,
 		"source":   source,
@@ -43,6 +50,7 @@ func (d *Data) newSensorValuePoint(deviceId, source, name string, sensorName *st
 	if sensorName != nil {
 		tags["sensorName"] = *sensorName
 	}
+	// Influxdb fields
 	fields := map[string]interface{}{"value": sensorValue.Value}
 	return influxdb2.NewPoint(deviceId+"/"+source, tags, fields, t)
 }
@@ -129,6 +137,22 @@ func (d *Data) parseSensorPayload(n *_business.Data, points []*write.Point) ([]*
 	return points, http.StatusCreated, nil
 }
 
+func (d *Data) parseGenericPayload(n *_business.Data, points []*write.Point) ([]*write.Point, int, error) {
+	var payload map[string]sensors.SensorValue
+	err := json.Unmarshal([]byte(n.Payload), &payload)
+	if err != nil {
+		util.Log.Error(err)
+		return nil, http.StatusInternalServerError, fmt.Errorf("unmarshal error")
+	}
+	for name, val := range payload {
+		if name == "sensor" {
+			continue
+		}
+		points = append(points, d.newSensorValuePoint(n.DeviceId, n.Source, name, nil, nil, val, n.CreatedAt))
+	}
+	return points, http.StatusCreated, nil
+}
+
 func (d *Data) Create(createData _business.DataCreate) (*_business.DataCreateResponse, int, error) {
 	var status = http.StatusInternalServerError
 	var points []*write.Point
@@ -155,19 +179,11 @@ func (d *Data) Create(createData _business.DataCreate) (*_business.DataCreateRes
 					return nil, status, err
 				}
 			} else {
-				var payload map[string]sensors.SensorValue
-				err := json.Unmarshal([]byte(n.Payload), &payload)
+				points, status, err = d.parseGenericPayload(n, points)
 				if err != nil {
 					util.Log.Error(err)
-					return nil, http.StatusInternalServerError, fmt.Errorf("unmarshal error")
+					return nil, status, err
 				}
-				for name, val := range payload {
-					if name == "sensor" {
-						continue
-					}
-					points = append(points, d.newSensorValuePoint(n.DeviceId, n.Source, name, nil, nil, val, n.CreatedAt))
-				}
-				status = http.StatusCreated
 			}
 		default:
 			return nil, http.StatusBadRequest, fmt.Errorf("unsupported data_type provided")
