@@ -1,6 +1,8 @@
 build/*.Dockerfile
 build/Dockerfile
 build/deployer
+build/air.conf
+build/air.debug.conf
 .vscode
 .secrets
 .*.env
@@ -10,3 +12,5 @@ schism.sqlite
 data
 *.docker-compose.yml
 docker-compose.yml
+grafana
+influxdb
