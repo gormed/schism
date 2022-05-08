@@ -49,6 +49,7 @@ replaceGitHash
 set -o allexport
 [[ -f "$ENV_FILE" ]] && source "$ENV_FILE"
 set +o allexport
+COMPOSE_FILE="docker-compose.${BUILD_ENV}.yml"
 
 # Make sure we have a registry
 initLocalRegistry
@@ -57,8 +58,8 @@ echo "Will $ACTION for $BUILD_ENV"
 
 if [[ "$ACTION" == 'build' ]]; then
   echo "Building all images"
-  if [[ -f "${BUILD_ENV}.docker-compose.yml" ]]; then
-    docker-compose -f docker-compose.yml -f "${BUILD_ENV}.docker-compose.yml" build
+  if [[ -f "${COMPOSE_FILE}" ]]; then
+    docker-compose -f docker-compose.yml -f "${COMPOSE_FILE}" build
   else
     echo "Invalid build environment: $BUILD_ENV"
   fi
@@ -76,8 +77,8 @@ fi
 
 if [[ "$ACTION" == 'up' ]]; then
   echo "Starting all containers"
-  if [[ -f "${BUILD_ENV}.docker-compose.yml" ]]; then
-    docker-compose -f docker-compose.yml -f "${BUILD_ENV}.docker-compose.yml" up -d
+  if [[ -f "${COMPOSE_FILE}" ]]; then
+    docker-compose -f docker-compose.yml -f "${COMPOSE_FILE}" up -d
   else
     echo "Invalid build environment: $BUILD_ENV"
   fi
@@ -85,8 +86,8 @@ fi
 
 if [[ "$ACTION" == 'down' ]]; then
   echo "Stopping all containers"
-  if [[ -f "${BUILD_ENV}.docker-compose.yml" ]]; then
-    docker-compose -f docker-compose.yml -f "${BUILD_ENV}.docker-compose.yml" down
+  if [[ -f "${COMPOSE_FILE}" ]]; then
+    docker-compose -f docker-compose.yml -f "${COMPOSE_FILE}" down
   else
     echo "Invalid build environment: $BUILD_ENV"
   fi
@@ -94,8 +95,8 @@ fi
 
 if [[ "$ACTION" == 'logs' ]]; then
   echo "View logs of $SERVICE"
-  if [[ -f "${BUILD_ENV}.docker-compose.yml" ]]; then
-    docker-compose -f docker-compose.yml -f "${BUILD_ENV}.docker-compose.yml" logs -f "$SERVICE"
+  if [[ -f "${COMPOSE_FILE}" ]]; then
+    docker-compose -f docker-compose.yml -f "${COMPOSE_FILE}" logs -f "$SERVICE"
   else
     echo "Invalid build environment: $BUILD_ENV"
   fi
@@ -103,8 +104,8 @@ fi
 
 if [[ "$ACTION" == 'exec' ]]; then
   echo "Exec into $SERVICE"
-  if [[ -f "${BUILD_ENV}.docker-compose.yml" ]]; then
-    docker-compose -f docker-compose.yml -f "${BUILD_ENV}.docker-compose.yml" exec "$SERVICE" "$COMMAND"
+  if [[ -f "${COMPOSE_FILE}" ]]; then
+    docker-compose -f docker-compose.yml -f "${COMPOSE_FILE}" exec "$SERVICE" "$COMMAND"
   else
     echo "Invalid build environment: $BUILD_ENV"
   fi
