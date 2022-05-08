@@ -26,7 +26,7 @@ services:
       - sqlite:/db:rw
 
   influxdb:
-    image: influxdb:2.1
+    image: influxdb:2.2
     restart: unless-stopped
     networks:
       - schism
