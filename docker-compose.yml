@@ -43,7 +43,7 @@ services:
       - data:/var/lib/influxdb2:rw
 
   grafana:
-    image: grafana/grafana-oss:8.3.3
+    image: grafana/grafana-oss:8.5.2
     restart: unless-stopped
     volumes:
       - grafana_data:/var/lib/grafana
