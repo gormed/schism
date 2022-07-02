@@ -22,7 +22,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": 1,
-  "iteration": 1650793989628,
+  "iteration": 1656766741523,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -656,6 +656,80 @@
           "color": {
             "mode": "thresholds"
           },
+          "displayName": "Loudness (last)",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 79.9976
+              },
+              {
+                "color": "orange",
+                "value": 100
+              },
+              {
+                "color": "red",
+                "value": 120
+              }
+            ]
+          },
+          "unit": "dB"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 16,
+        "y": 12
+      },
+      "id": 28,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.3.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "P2480346FC547677B"
+          },
+          "query": "// v.bucket, v.timeRangeStart, and v.timeRange stop are all variables supported by the flux plugin and influxdb\ndataSet = from(bucket: v.bucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"deviceId\"] == \"${deviceId}\")\n  |> filter(fn: (r) => r[\"name\"] == \"loudness\")\ndataSet\n  |> aggregateWindow(\n    every: ${aggregate},\n    fn: (tables=<-, column) => tables |> median(method: \"exact_selector\")\n  )\n  |> drop(columns: [\"deviceId\", \"source\", \"type\"])",
+          "refId": "A"
+        }
+      ],
+      "title": "Loudness (${deviceId})",
+      "transparent": true,
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "P2480346FC547677B"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
           "displayName": "Soil Moisture",
           "mappings": [
             {
@@ -692,8 +766,8 @@
       "gridPos": {
         "h": 5,
         "w": 8,
-        "x": 16,
-        "y": 12
+        "x": 0,
+        "y": 17
       },
       "id": 9,
       "options": {
@@ -722,68 +796,6 @@
         }
       ],
       "title": "Soil Moisture (${deviceId})",
-      "transparent": true,
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "influxdb",
-        "uid": "P2480346FC547677B"
-      },
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "displayName": "Loudness (last)",
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "dB"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 5,
-        "w": 8,
-        "x": 0,
-        "y": 17
-      },
-      "id": 28,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "pluginVersion": "8.3.3",
-      "targets": [
-        {
-          "datasource": {
-            "type": "influxdb",
-            "uid": "P2480346FC547677B"
-          },
-          "query": "// v.bucket, v.timeRangeStart, and v.timeRange stop are all variables supported by the flux plugin and influxdb\ndataSet = from(bucket: v.bucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"deviceId\"] == \"${deviceId}\")\n  |> filter(fn: (r) => r[\"name\"] == \"loudness\")\ndataSet\n  |> aggregateWindow(\n    every: ${aggregate},\n    fn: (tables=<-, column) => tables |> median(method: \"exact_selector\")\n  )\n  |> drop(columns: [\"deviceId\", \"source\", \"type\"])",
-          "refId": "A"
-        }
-      ],
-      "title": "Loudness (${deviceId})",
       "transparent": true,
       "type": "stat"
     },
@@ -899,7 +911,7 @@
             "h": 10,
             "w": 24,
             "x": 0,
-            "y": 2
+            "y": 3
           },
           "id": 2,
           "options": {
@@ -1073,7 +1085,7 @@
             "h": 10,
             "w": 24,
             "x": 0,
-            "y": 3
+            "y": 4
           },
           "id": 11,
           "options": {
@@ -1269,7 +1281,7 @@
             "h": 9,
             "w": 24,
             "x": 0,
-            "y": 4
+            "y": 5
           },
           "id": 27,
           "options": {
@@ -1320,6 +1332,284 @@
         "w": 24,
         "x": 0,
         "y": 25
+      },
+      "id": 21,
+      "panels": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "P2480346FC547677B"
+          },
+          "description": "",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "continuous-RdYlGr",
+                "seriesBy": "last"
+              },
+              "custom": {
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 20,
+                "gradientMode": "scheme",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "lineInterpolation": "smooth",
+                "lineWidth": 1,
+                "pointSize": 4,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "always",
+                "spanNulls": true,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [
+                {
+                  "options": {
+                    "0": {
+                      "index": 0,
+                      "text": "Dry"
+                    },
+                    "1": {
+                      "index": 1,
+                      "text": "Moist"
+                    }
+                  },
+                  "type": "value"
+                }
+              ],
+              "max": 100,
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "super-light-orange",
+                    "value": null
+                  },
+                  {
+                    "color": "dark-blue",
+                    "value": 1
+                  }
+                ]
+              },
+              "unit": "percent"
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "soilMoisture"
+                },
+                "properties": [
+                  {
+                    "id": "custom.axisLabel",
+                    "value": "Soil Moisture"
+                  }
+                ]
+              }
+            ]
+          },
+          "gridPos": {
+            "h": 7,
+            "w": 24,
+            "x": 0,
+            "y": 7
+          },
+          "id": 23,
+          "options": {
+            "legend": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "displayMode": "list",
+              "placement": "bottom"
+            },
+            "tooltip": {
+              "mode": "single"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "influxdb",
+                "uid": "P2480346FC547677B"
+              },
+              "query": "// v.bucket, v.timeRangeStart, and v.timeRange stop are all variables supported by the flux plugin and influxdb\ndataSet = from(bucket: v.bucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"deviceId\"] == \"${deviceId}\")\n  |> filter(fn: (r) => r[\"name\"] == \"soilMoisture\")\ndataSet\n  |> aggregateWindow(\n    every: ${aggregate},\n    fn: (tables=<-, column) => tables |> median(method: \"exact_selector\")\n  )\n  |> drop(columns: [\"deviceId\", \"source\", \"type\", \"unit\", \"unitName\"])",
+              "refId": "A"
+            }
+          ],
+          "title": "Soil Moisture",
+          "transformations": [
+            {
+              "id": "labelsToFields",
+              "options": {
+                "valueLabel": "name"
+              }
+            }
+          ],
+          "transparent": true,
+          "type": "timeseries"
+        }
+      ],
+      "title": "Soil Moisture Sensors",
+      "type": "row"
+    },
+    {
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 26
+      },
+      "id": 33,
+      "panels": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "P2480346FC547677B"
+          },
+          "description": "",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "continuous-GrYlRd",
+                "seriesBy": "last"
+              },
+              "custom": {
+                "axisLabel": "",
+                "axisPlacement": "right",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 0,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "lineInterpolation": "smooth",
+                "lineStyle": {
+                  "fill": "solid"
+                },
+                "lineWidth": 1,
+                "pointSize": 3,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "always",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "line+area"
+                }
+              },
+              "mappings": [],
+              "max": 180,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "#EAB839",
+                    "value": 80
+                  },
+                  {
+                    "color": "orange",
+                    "value": 100
+                  },
+                  {
+                    "color": "red",
+                    "value": 120
+                  }
+                ]
+              },
+              "unit": "dB"
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "loudness"
+                },
+                "properties": [
+                  {
+                    "id": "custom.axisLabel",
+                    "value": "Loudness"
+                  }
+                ]
+              }
+            ]
+          },
+          "gridPos": {
+            "h": 9,
+            "w": 24,
+            "x": 0,
+            "y": 5
+          },
+          "id": 29,
+          "options": {
+            "legend": {
+              "calcs": [],
+              "displayMode": "list",
+              "placement": "bottom"
+            },
+            "tooltip": {
+              "mode": "single"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "influxdb",
+                "uid": "P2480346FC547677B"
+              },
+              "query": "// v.bucket, v.timeRangeStart, and v.timeRange stop are all variables supported by the flux plugin and influxdb\ndataSet = from(bucket: v.bucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"deviceId\"] == \"${deviceId}\")\n  |> filter(fn: (r) => r[\"name\"] == \"loudness\")\ndataSet\n  |> aggregateWindow(\n    every: ${aggregate},\n    fn: (tables=<-, column) => tables |> median(method: \"exact_selector\")\n  )\n  |> drop(columns: [\"deviceId\", \"source\", \"type\"])",
+              "refId": "A"
+            }
+          ],
+          "title": "Loudness",
+          "transformations": [
+            {
+              "id": "labelsToFields",
+              "options": {
+                "valueLabel": "name"
+              }
+            }
+          ],
+          "transparent": true,
+          "type": "timeseries"
+        }
+      ],
+      "title": "Loudness Sensors",
+      "type": "row"
+    },
+    {
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 27
       },
       "id": 19,
       "panels": [
@@ -1410,7 +1700,7 @@
             "h": 9,
             "w": 24,
             "x": 0,
-            "y": 26
+            "y": 6
           },
           "id": 8,
           "options": {
@@ -1448,276 +1738,9 @@
       ],
       "title": "Ultrasonic Distance Sensors",
       "type": "row"
-    },
-    {
-      "collapsed": true,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 26
-      },
-      "id": 33,
-      "panels": [
-        {
-          "datasource": {
-            "type": "influxdb",
-            "uid": "P2480346FC547677B"
-          },
-          "description": "",
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "continuous-GrYlRd",
-                "seriesBy": "last"
-              },
-              "custom": {
-                "axisLabel": "",
-                "axisPlacement": "right",
-                "barAlignment": 0,
-                "drawStyle": "line",
-                "fillOpacity": 0,
-                "gradientMode": "none",
-                "hideFrom": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": false
-                },
-                "lineInterpolation": "smooth",
-                "lineStyle": {
-                  "fill": "solid"
-                },
-                "lineWidth": 1,
-                "pointSize": 3,
-                "scaleDistribution": {
-                  "type": "linear"
-                },
-                "showPoints": "always",
-                "spanNulls": false,
-                "stacking": {
-                  "group": "A",
-                  "mode": "none"
-                },
-                "thresholdsStyle": {
-                  "mode": "line+area"
-                }
-              },
-              "decimals": 0,
-              "mappings": [],
-              "max": 200,
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  }
-                ]
-              },
-              "unit": "dB"
-            },
-            "overrides": [
-              {
-                "matcher": {
-                  "id": "byName",
-                  "options": "distance"
-                },
-                "properties": [
-                  {
-                    "id": "custom.axisLabel",
-                    "value": "Distance"
-                  }
-                ]
-              }
-            ]
-          },
-          "gridPos": {
-            "h": 9,
-            "w": 24,
-            "x": 0,
-            "y": 27
-          },
-          "id": 29,
-          "options": {
-            "legend": {
-              "calcs": [],
-              "displayMode": "list",
-              "placement": "bottom"
-            },
-            "tooltip": {
-              "mode": "single"
-            }
-          },
-          "targets": [
-            {
-              "datasource": {
-                "type": "influxdb",
-                "uid": "P2480346FC547677B"
-              },
-              "query": "// v.bucket, v.timeRangeStart, and v.timeRange stop are all variables supported by the flux plugin and influxdb\ndataSet = from(bucket: v.bucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"deviceId\"] == \"${deviceId}\")\n  |> filter(fn: (r) => r[\"name\"] == \"loudness\")\ndataSet\n  |> aggregateWindow(\n    every: ${aggregate},\n    fn: (tables=<-, column) => tables |> median(method: \"exact_selector\")\n  )\n  |> drop(columns: [\"deviceId\", \"source\", \"type\"])",
-              "refId": "A"
-            }
-          ],
-          "title": "Loudness",
-          "transformations": [
-            {
-              "id": "labelsToFields",
-              "options": {
-                "valueLabel": "name"
-              }
-            }
-          ],
-          "transparent": true,
-          "type": "timeseries"
-        }
-      ],
-      "title": "Loudness",
-      "type": "row"
-    },
-    {
-      "collapsed": true,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 27
-      },
-      "id": 21,
-      "panels": [
-        {
-          "datasource": {
-            "type": "influxdb",
-            "uid": "P2480346FC547677B"
-          },
-          "description": "",
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "continuous-RdYlGr",
-                "seriesBy": "last"
-              },
-              "custom": {
-                "axisLabel": "",
-                "axisPlacement": "auto",
-                "barAlignment": 0,
-                "drawStyle": "line",
-                "fillOpacity": 20,
-                "gradientMode": "scheme",
-                "hideFrom": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": false
-                },
-                "lineInterpolation": "smooth",
-                "lineWidth": 1,
-                "pointSize": 4,
-                "scaleDistribution": {
-                  "type": "linear"
-                },
-                "showPoints": "always",
-                "spanNulls": true,
-                "stacking": {
-                  "group": "A",
-                  "mode": "none"
-                },
-                "thresholdsStyle": {
-                  "mode": "off"
-                }
-              },
-              "mappings": [
-                {
-                  "options": {
-                    "0": {
-                      "index": 0,
-                      "text": "Dry"
-                    },
-                    "1": {
-                      "index": 1,
-                      "text": "Moist"
-                    }
-                  },
-                  "type": "value"
-                }
-              ],
-              "max": 1,
-              "min": 0,
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "super-light-orange",
-                    "value": null
-                  },
-                  {
-                    "color": "dark-blue",
-                    "value": 1
-                  }
-                ]
-              },
-              "unit": "bool"
-            },
-            "overrides": [
-              {
-                "matcher": {
-                  "id": "byName",
-                  "options": "soilMoisture"
-                },
-                "properties": [
-                  {
-                    "id": "custom.axisLabel",
-                    "value": "Soil Moisture"
-                  }
-                ]
-              }
-            ]
-          },
-          "gridPos": {
-            "h": 7,
-            "w": 24,
-            "x": 0,
-            "y": 6
-          },
-          "id": 23,
-          "options": {
-            "legend": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "displayMode": "list",
-              "placement": "bottom"
-            },
-            "tooltip": {
-              "mode": "single"
-            }
-          },
-          "targets": [
-            {
-              "datasource": {
-                "type": "influxdb",
-                "uid": "P2480346FC547677B"
-              },
-              "query": "// v.bucket, v.timeRangeStart, and v.timeRange stop are all variables supported by the flux plugin and influxdb\ndataSet = from(bucket: v.bucket)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"deviceId\"] == \"${deviceId}\")\n  |> filter(fn: (r) => r[\"name\"] == \"soilMoisture\")\ndataSet\n  |> aggregateWindow(\n    every: ${aggregate},\n    fn: (tables=<-, column) => tables |> median(method: \"exact_selector\")\n  )\n  |> drop(columns: [\"deviceId\", \"source\", \"type\", \"unit\", \"unitName\"])",
-              "refId": "A"
-            }
-          ],
-          "title": "Soil Moisture",
-          "transformations": [
-            {
-              "id": "labelsToFields",
-              "options": {
-                "valueLabel": "name"
-              }
-            }
-          ],
-          "transparent": true,
-          "type": "timeseries"
-        }
-      ],
-      "title": "Soil Moisture Sensors",
-      "type": "row"
     }
   ],
-  "refresh": "",
+  "refresh": "30s",
   "schemaVersion": 34,
   "style": "dark",
   "tags": [],
@@ -1726,8 +1749,8 @@
       {
         "current": {
           "selected": true,
-          "text": "f4fec90a-91be-11ec-a1c8-0242c0a89003",
-          "value": "f4fec90a-91be-11ec-a1c8-0242c0a89003"
+          "text": "36aeb333-9278-11ec-a085-0242c0a8a005",
+          "value": "36aeb333-9278-11ec-a085-0242c0a8a005"
         },
         "datasource": {
           "type": "influxdb",
@@ -1749,7 +1772,7 @@
       },
       {
         "current": {
-          "selected": true,
+          "selected": false,
           "text": [
             "All"
           ],
@@ -1780,9 +1803,9 @@
         "auto_count": 30,
         "auto_min": "10s",
         "current": {
-          "selected": true,
-          "text": "5m",
-          "value": "5m"
+          "selected": false,
+          "text": "1m",
+          "value": "1m"
         },
         "hide": 0,
         "name": "aggregate",
@@ -1793,12 +1816,12 @@
             "value": "30s"
           },
           {
-            "selected": false,
+            "selected": true,
             "text": "1m",
             "value": "1m"
           },
           {
-            "selected": true,
+            "selected": false,
             "text": "5m",
             "value": "5m"
           },
@@ -1857,13 +1880,13 @@
     ]
   },
   "time": {
-    "from": "now-1h",
+    "from": "now-30m",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "",
   "title": "Schism",
   "uid": "EP-BD-A7z",
-  "version": 603,
+  "version": 2118,
   "weekStart": ""
 }
