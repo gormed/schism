@@ -12,7 +12,7 @@ services:
       - traefik
     labels:
       - "traefik.enable=true"
-      - "traefik.frontend.rule=Host:schism.dev.$TRAEFIK_DOMAIN"
+      - "traefik.frontend.rule=Host:$API_DOMAIN"
       - "traefik.docker.network=traefik"
       - "traefik.port=8080"
 
@@ -27,9 +27,9 @@ services:
       - traefik
     labels:
       - "traefik.enable=true"
-      - "traefik.frontend.rule=Host:grafana.dev.$TRAEFIK_DOMAIN"
+      - "traefik.frontend.rule=Host:$GRAFANA_DOMAIN"
       - "traefik.docker.network=traefik"
-      - "traefik.port=80"
+      - "traefik.port=3000"
 
 networks:
   schism:
