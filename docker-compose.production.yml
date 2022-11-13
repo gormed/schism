@@ -1,0 +1,38 @@
+version: '3.9'
+services:
+  schism:
+    image: ${DOCKER_REGISTRY}${IMAGE_PREFIX}schism:${DOCKER_TAG}
+    build:
+      context: ./
+      dockerfile: ./build/Dockerfile
+    depends_on:
+      - influxdb
+    networks:
+      - schism
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.frontend.rule=Host:schism.dev.$TRAEFIK_DOMAIN"
+      - "traefik.docker.network=traefik"
+      - "traefik.port=8080"
+
+  influxdb:
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=false"
+
+  grafana:
+    networks:
+      - schism
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.frontend.rule=Host:grafana.dev.$TRAEFIK_DOMAIN"
+      - "traefik.docker.network=traefik"
+      - "traefik.port=80"
+
+networks:
+  schism:
+  traefik:
+    external:
+      name: traefik
