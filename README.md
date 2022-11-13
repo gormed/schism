@@ -12,9 +12,10 @@ To install dependencies run `go mod download`.
 
 Build and run via:
 
+Images are build via [github](https://github.com/gormed/schism) and [docker.com](https://hub.docker.com/r/gormed/schism) - pull them via `docker pull gormed/schism:latest` to get the latest master build.
+
 ```sh
-deployer build production
-deployer push production
+deployer pull production
 deplyoer up production
 
 # View logs
