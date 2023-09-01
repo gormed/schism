@@ -2,7 +2,7 @@
 
 Collects data from distributed sensors pushed via the [pushit](https://gitlab.void-ptr.org/go/pushit) service.
 
-Chechout the repository via `git clone && cd schism`.
+Checkout the repository via `git clone && cd schism`.
 
 Config is done via `.envrc`, you need to install [direnv](https://direnv.net) on your dev machine and on the raspberry.
 
