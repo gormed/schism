@@ -12,7 +12,7 @@ services:
     environment:
       - VIRTUAL_HOST=${API_DOMAIN:-api.schism.void-ptr.org}
       - VIRTUAL_PORT=8080
-      - SELF_SIGNED_HOST=schism.void-ptr.org
+      - SELF_SIGNED_HOST=${API_DOMAIN:-api.schism.void-ptr.org}
 
   influxdb:
     restart: unless-stopped
@@ -23,7 +23,7 @@ services:
     environment:
       - VIRTUAL_HOST=${GRAFANA_DOMAIN:-grafana.schism.void-ptr.org}
       - VIRTUAL_PORT=3000
-      - SELF_SIGNED_HOST=schism.void-ptr.org
+      - SELF_SIGNED_HOST=${GRAFANA_DOMAIN:-grafana.schism.void-ptr.org}
 
   nginx-proxy:
     container_name: proxy
