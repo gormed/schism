@@ -35,7 +35,7 @@ services:
       - nginx-proxy
     volumes:
       - /var/run/docker.sock:/tmp/docker.sock:ro
-      - ./vhost.d:/etc/nginx/vhost.d
+      - ${NGINX_FILES_PATH:-./data}/vhost.d:/etc/nginx/vhost.d
       - ${NGINX_FILES_PATH:-./data}/certs:/etc/nginx/certs
 
   proxy-companion:
@@ -47,3 +47,4 @@ services:
 
 networks:
   nginx-proxy:
+    external: true
