@@ -26,6 +26,7 @@ services:
       - SELF_SIGNED_HOST=${GRAFANA_DOMAIN:-dev.void-ptr.org}
 
   nginx-proxy:
+    restart: always
     image: jwilder/nginx-proxy
     ports:
       - "80:80"
@@ -33,12 +34,9 @@ services:
     networks:
       - nginx-proxy
     volumes:
-      - ${NGINX_FILES_PATH:-./data}/conf.d:/etc/nginx/conf.d
-      - ${NGINX_FILES_PATH:-./data}/vhost.d:/etc/nginx/vhost.d
-      - ${NGINX_FILES_PATH:-./data}/html:/usr/share/nginx/html
-      - ${NGINX_FILES_PATH:-./data}/certs:/etc/nginx/certs:ro
-      - ${NGINX_FILES_PATH:-./data}/htpasswd:/etc/nginx/htpasswd:ro
       - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ./vhost.d:/etc/nginx/vhost.d
+      - ${NGINX_FILES_PATH:-./data}/certs:/etc/nginx/certs
 
   proxy-companion:
     restart: always
