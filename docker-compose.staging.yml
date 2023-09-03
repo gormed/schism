@@ -26,6 +26,7 @@ services:
       - SELF_SIGNED_HOST=schism.void-ptr.org
 
   nginx-proxy:
+    container_name: proxy
     restart: always
     image: jwilder/nginx-proxy
     ports:
@@ -42,6 +43,7 @@ services:
       - ${NGINX_FILES_PATH:-./data}/htpasswd:/etc/nginx/htpasswd:ro
 
   proxy-companion:
+    container_name: proxy-companion
     restart: always
     image: sebastienheyd/self-signed-proxy-companion
     volumes:
