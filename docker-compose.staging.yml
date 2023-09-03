@@ -10,9 +10,9 @@ services:
     networks:
       - nginx-proxy
     environment:
+      - VIRTUAL_HOST=${API_DOMAIN:-api.schism.void-ptr.org}
       - VIRTUAL_PORT=8080
-      - VIRTUAL_HOST=${API_DOMAIN:-dev.void-ptr.org}
-      - SELF_SIGNED_HOST=${API_DOMAIN:-dev.void-ptr.org}
+      - SELF_SIGNED_HOST=${API_DOMAIN:-api.schism.void-ptr.org}
 
   influxdb:
     restart: unless-stopped
@@ -21,9 +21,9 @@ services:
     networks:
       - nginx-proxy
     environment:
+      - VIRTUAL_HOST=${GRAFANA_DOMAIN:-grafana.schism.void-ptr.org}
       - VIRTUAL_PORT=3000
-      - VIRTUAL_HOST=${GRAFANA_DOMAIN:-grafana.dev.void-ptr.org}
-      - SELF_SIGNED_HOST=${GRAFANA_DOMAIN:-dev.void-ptr.org}
+      - SELF_SIGNED_HOST=${GRAFANA_DOMAIN:-grafana.schism.void-ptr.org}
 
   nginx-proxy:
     restart: always
@@ -31,6 +31,8 @@ services:
     ports:
       - "80:80"
       - "443:443"
+      - "[::]:80"
+      - "[::]:443"
     networks:
       - nginx-proxy
     volumes:
