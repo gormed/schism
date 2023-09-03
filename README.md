@@ -66,9 +66,29 @@ sudo usermod -aG docker $USER
 docker run hello-world
 ```
 
----
-
 See <https://docs.docker.com/engine/install/linux-postinstall/> for more.
+
+#### Docker Compose
+
+```sh
+# Install Docker Compose for armv7, update the version if needed
+DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
+mkdir -p $DOCKER_CONFIG/cli-plugins
+curl -SL https://github.com/docker/compose/releases/download/v2.21.0/docker-compose-linux-armv7 -o $DOCKER_CONFIG/cli-plugins/docker-compose
+chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
+```
+
+Make sure to add the following to your .zshrc:
+
+```sh
+DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
+export PATH="$PATH:$DOCKER_CONFIG/cli-plugins"
+```
+
+```sh
+# Verify that the installation was successful by checking the version:
+docker compose version
+```
 
 ## Production
 
@@ -87,6 +107,40 @@ deployer logs production
 deployer down production
 ```
 
+## Staging
+
+You have to build the images locally, you can use the same images as in development.
+
+```sh
+deployer build
+deployer push
+
+# Create a secret for the schism api
+mkdir -p ./secrets
+cat <<EOF > ./secrets/schism.api.secret
+my super secret password
+EOF
+
+deplyoer up
+
+# View logs
+deployer logs
+
+# Stop staging
+deployer down
+```
+
+### Install self signed certificates
+  
+  ```sh
+  # Create a self signed certificate
+  openssl req -x509 -newkey rsa:4096 -keyout ./secrets/schism.key -out ./secrets/schism.crt -days 365 -nodes -subj "/C=DE/ST=Berlin/L=Berlin/O=Schism/OU=Schism/CN=schism.local"
+  # Install the certificate
+  sudo mkdir -p /usr/local/share/ca-certificates/schism
+  sudo cp ./secrets/schism.crt /usr/local/share/ca-certificates/schism/schism.crt
+  sudo update-ca-certificates
+  ```
+
 ## Development
 
 Build and run with air (see `./build/air.conf`) for hot-reloading code.
@@ -94,6 +148,13 @@ Build and run with air (see `./build/air.conf`) for hot-reloading code.
 ```sh
 deployer build
 deployer push
+
+# Create a secret for the schism api
+mkdir -p ./secrets
+cat <<EOF > ./secrets/schism.api.secret
+my super secret password
+EOF
+
 deplyoer up
 
 # View logs

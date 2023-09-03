@@ -23,7 +23,7 @@ services:
     environment:
       - VIRTUAL_PORT=3000
       - VIRTUAL_HOST=${GRAFANA_DOMAIN:-grafana.dev.void-ptr.org}
-      - SELF_SIGNED_HOST=${GRAFANA_DOMAIN:-grafana.dev.void-ptr.dev}
+      - SELF_SIGNED_HOST=${GRAFANA_DOMAIN:-dev.void-ptr.org}
 
   nginx-proxy:
     image: jwilder/nginx-proxy
@@ -46,7 +46,6 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ${NGINX_FILES_PATH:-./data}/certs:/etc/nginx/certs
-
 
 networks:
   nginx-proxy:

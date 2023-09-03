@@ -59,8 +59,10 @@ volumes:
   data:
   grafana_data:
 
+
 networks:
   schism:
+
 
 secrets:
   schism.api.secret:
