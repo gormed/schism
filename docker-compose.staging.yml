@@ -10,9 +10,9 @@ services:
     networks:
       - nginx-proxy
     environment:
+      - VIRTUAL_HOST=${API_DOMAIN:-api.schism.void-ptr.org}
       - VIRTUAL_PORT=8080
-      - VIRTUAL_HOST=${API_DOMAIN:-dev.void-ptr.org}
-      - SELF_SIGNED_HOST=${API_DOMAIN:-dev.void-ptr.org}
+      - SELF_SIGNED_HOST=${API_DOMAIN:-api.schism.void-ptr.org}
 
   influxdb:
     restart: unless-stopped
@@ -21,11 +21,13 @@ services:
     networks:
       - nginx-proxy
     environment:
+      - VIRTUAL_HOST=${GRAFANA_DOMAIN:-grafana.schism.void-ptr.org}
       - VIRTUAL_PORT=3000
-      - VIRTUAL_HOST=${GRAFANA_DOMAIN:-grafana.dev.void-ptr.org}
-      - SELF_SIGNED_HOST=${GRAFANA_DOMAIN:-grafana.dev.void-ptr.dev}
+      - SELF_SIGNED_HOST=${GRAFANA_DOMAIN:-grafana.schism.void-ptr.org}
 
   nginx-proxy:
+    container_name: proxy
+    restart: always
     image: jwilder/nginx-proxy
     ports:
       - "80:80"
@@ -33,20 +35,20 @@ services:
     networks:
       - nginx-proxy
     volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
       - ${NGINX_FILES_PATH:-./data}/conf.d:/etc/nginx/conf.d
       - ${NGINX_FILES_PATH:-./data}/vhost.d:/etc/nginx/vhost.d
       - ${NGINX_FILES_PATH:-./data}/html:/usr/share/nginx/html
-      - ${NGINX_FILES_PATH:-./data}/certs:/etc/nginx/certs:ro
+      - ${NGINX_FILES_PATH:-./data}/certs:/etc/nginx/certs
       - ${NGINX_FILES_PATH:-./data}/htpasswd:/etc/nginx/htpasswd:ro
-      - /var/run/docker.sock:/tmp/docker.sock:ro
 
   proxy-companion:
+    container_name: proxy-companion
     restart: always
     image: sebastienheyd/self-signed-proxy-companion
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ${NGINX_FILES_PATH:-./data}/certs:/etc/nginx/certs
-
 
 networks:
   nginx-proxy:

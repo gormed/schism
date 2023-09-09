@@ -1,19 +1,19 @@
-FROM golang:1.16-alpine3.14 as builder
+FROM golang:1.16-alpine3.15 as builder
 
 ENV CGO_ENABLED=1
 ENV GOOS=linux
 # ENV GOARCH=amd64
 
+RUN apk update && apk add git g++ gcc make build-base i2c-tools linux-headers
+
 RUN mkdir /build
 WORKDIR $GOPATH/src/gitlab.void-ptr.org/go/schism
 ADD . .
-
-RUN apk update && apk add git g++ gcc make build-base i2c-tools linux-headers
 RUN set -ex \
   && go build \
-		-gcflags "all=-trimpath=${GOPATH}" \
-		-asmflags "all=-trimpath=${GOPATH}" \
-    -o /build/schism main.go
+  -gcflags "all=-trimpath=${GOPATH}" \
+  -asmflags "all=-trimpath=${GOPATH}" \
+  -o /build/schism main.go
 
 FROM alpine:3.15
 

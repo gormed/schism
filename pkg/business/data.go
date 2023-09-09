@@ -52,6 +52,7 @@ func (d *Data) newSensorValuePoint(
 	}
 	// Influxdb fields
 	fields := map[string]interface{}{"value": sensorValue.Value}
+	util.Log.Debugf("NewPoint@%s %s/%s - %s - %s", t.Local().Format("23:05:00.000"), deviceId+"/"+source, tags, fields)
 	return influxdb2.NewPoint(deviceId+"/"+source, tags, fields, t)
 }
 
