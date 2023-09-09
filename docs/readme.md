@@ -2,13 +2,19 @@
 
 ## Components
 
-- schism - backbone API that manages different devices and stores their sensor data in the influxdb
-- influxdb - database that stores times series data
-- grafana - visualizes the collected data
-- lateralus (pi) - device backbone API that provides access to the device features (sensors, cameras, servos) implemented for the pi
-- pushit (pi) - device schism client that scrapes the lateralus device backbone for data from its implemented features
+- [schism](./schism/readme.md) - backbone API that manages different devices and stores their sensor data in the influxdb
+  - influxdb - database that stores times series data
+  - [grafana] - visualizes the collected data
+- [lateralus (pi)](./lateralus/readme.md) - device backbone API that provides access to the device features (sensors, cameras, servos) implemented for the pi
+- [pushit (pi)](./pushit/readme.md) - device schism client that scrapes the lateralus device backbone for data from its implemented features
+
+---
 
 ![Systems Diagram](./systems.drawio.svg)
+
+## Setup
+
+See the [setup docs](./setup/readme.md) on how to setup your raspberry pi.
 
 ## Development
 
@@ -18,6 +24,8 @@
 - bob
 
 ## Configuration
+
+The configuration is done via `.envrc` files, you need to install [direnv](https://direnv.net) on your dev machine and on the raspberry.
 
 ### `.bob.yaml`
 
