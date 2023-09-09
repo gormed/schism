@@ -12,23 +12,7 @@ To install dependencies run `go mod download`.
 
 ### Raspberry
 
-Quick setup on a raspberry pi 4 running raspbian OS lite 64bit:
-
-```sh
-# Setup zsh and stuff we want for ease of use
-sudo apt update
-sudo apt install zsh git ca-certificates curl gnupg figlet direnv
-# Install antigen, fzf and a custom .zshrc
-curl -L git.io/antigen > ~/antigen.zsh
-git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
-~/.fzf/install
-# Install .zshrc
-curl -L "https://gist.githubusercontent.com/gormed/c339a3448c5530471586bc238d44b106/raw/52a11e3309a4c0d86c1589bbe2de35b9a6513d27/.zshrc" > ~/.zshrc
-# Change shell to zsh
-chsh -s $(which zsh)
-# Now we can use zsh
-# by just `zsh` or logging out and in again
-```
+Quick setup on a raspberry pi 4 running raspbian OS lite 64bit, see [setup docs](../setup/readme.md#terminal-and-co) for more.
 
 #### Docker
 

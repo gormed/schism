@@ -14,14 +14,26 @@
 
 ## Setup
 
-See the [setup docs](./setup/readme.md) on how to setup your raspberry pi.
+See the [setup docs](./setup/readme.md) on how to setup your raspberry pi's.
 
 ## Development
 
+### Software
+
+- git
 - golang 1.16
-- raspberry pi (3, 4, zero)
 - direnv
 - bob
+
+### Hardware
+
+- Raspberry PI's (3, 4, zero)
+- Groove - Base Hat for Raspberry Pi
+- Grove - Temperature & Humidity Sensor (DHT11)
+- Grove - Light Sensor
+- Grove - Soil Moisture Sensor
+- Grove - Loudness Sensor
+- Grove - BMP280 Barometer
 
 ## Configuration
 
