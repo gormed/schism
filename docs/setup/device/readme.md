@@ -26,4 +26,13 @@ wget -q -O - https://git.io/vQhTU | bash
 echo "export PATH=$PATH:$HOME/.go/bin" >> "~/.bashrc"
 # or
 echo "export PATH=$PATH:$HOME/.go/bin" >> "~/.zshrc"
+
+export GOPATH=$HOME/go
+export GOROOT=/usr/local/go
+export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
+
 ```
+
+## Generate SSH Key
+
+See [ssh key docs](../readme.md#generate-ssh-key).

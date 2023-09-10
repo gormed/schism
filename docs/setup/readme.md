@@ -51,3 +51,11 @@ chsh -s $(which zsh)
 # Now we can use zsh
 # by just `zsh` or logging out and in again
 ```
+
+## Generate SSH Key
+
+```sh
+ssh-keygen -t ed25519 -C "pi@pi-zero-03"
+# Copy the public key to the clipboard
+xclip -sel clip < ~/.ssh/id_ed25519.pub
+```
