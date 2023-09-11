@@ -30,22 +30,20 @@ func NewData(database *db.Influx) *Data {
 
 func (d *Data) newSensorValuePoint(
 	deviceId, source, name string,
-	sensorName *string,
+	sensorName string,
 	sensorType *sensors.SensorType,
 	sensorValue sensors.SensorValue,
 	t time.Time,
 ) *write.Point {
 	// Influxdb tags
 	tags := map[string]string{
-		"deviceId": deviceId,
-		"source":   source,
-		"type":     _business.SensorValueType,
-		"name":     name,
-		"unit":     sensorValue.Unit,
-		"unitName": sensorValue.UnitName,
-	}
-	if sensorName != nil {
-		tags["sensorName"] = *sensorName
+		"deviceId":   deviceId,
+		"source":     source,
+		"type":       _business.SensorValueType,
+		"name":       name,
+		"unit":       sensorValue.Unit,
+		"unitName":   sensorValue.UnitName,
+		"sensorName": sensorName,
 	}
 	if sensorType != nil {
 		tags["sensorType"] = fmt.Sprintf("%d", sensorType)
@@ -72,7 +70,7 @@ func (d *Data) parseSensorPayload(n *_business.Data, points []*write.Point) ([]*
 			"humidity":   *payload.Humidity,
 			"pressure":   *payload.Pressure,
 		} {
-			points = append(points, d.newSensorValuePoint(n.DeviceId, n.Source, name, &payload.Sensor.Name, n.SensorType, t, n.CreatedAt))
+			points = append(points, d.newSensorValuePoint(n.DeviceId, n.Source, name, payload.Sensor.Name, n.SensorType, t, n.CreatedAt))
 		}
 	case sensors.SensorType_SI1145:
 		var payload sensors.SI1145SensorData
@@ -86,7 +84,7 @@ func (d *Data) parseSensorPayload(n *_business.Data, points []*write.Point) ([]*
 			"ultraViolett": *payload.UltraViolett,
 			"visible":      *payload.Visible,
 		} {
-			points = append(points, d.newSensorValuePoint(n.DeviceId, n.Source, name, &payload.Sensor.Name, n.SensorType, t, n.CreatedAt))
+			points = append(points, d.newSensorValuePoint(n.DeviceId, n.Source, name, payload.Sensor.Name, n.SensorType, t, n.CreatedAt))
 		}
 	case sensors.SensorType_NU40C16:
 		var payload sensors.NU40C16SensorData
@@ -98,7 +96,7 @@ func (d *Data) parseSensorPayload(n *_business.Data, points []*write.Point) ([]*
 		for name, t := range map[string]sensors.SensorValue{
 			"distance": *payload.Distance,
 		} {
-			points = append(points, d.newSensorValuePoint(n.DeviceId, n.Source, name, &payload.Sensor.Name, n.SensorType, t, n.CreatedAt))
+			points = append(points, d.newSensorValuePoint(n.DeviceId, n.Source, name, payload.Sensor.Name, n.SensorType, t, n.CreatedAt))
 		}
 	case sensors.SensorType_SoilMoisture:
 		var payload sensors.SoilMoistureSensorData
@@ -110,7 +108,7 @@ func (d *Data) parseSensorPayload(n *_business.Data, points []*write.Point) ([]*
 		for name, t := range map[string]sensors.SensorValue{
 			"soilMoisture": *payload.SoilMoisture,
 		} {
-			points = append(points, d.newSensorValuePoint(n.DeviceId, n.Source, name, &payload.Sensor.Name, n.SensorType, t, n.CreatedAt))
+			points = append(points, d.newSensorValuePoint(n.DeviceId, n.Source, name, payload.Sensor.Name, n.SensorType, t, n.CreatedAt))
 		}
 	case sensors.SensorType_AirQuality:
 		var payload sensors.AirQualitySensorData
@@ -122,7 +120,7 @@ func (d *Data) parseSensorPayload(n *_business.Data, points []*write.Point) ([]*
 		for name, t := range map[string]sensors.SensorValue{
 			"airQuality": *payload.AirQuality,
 		} {
-			points = append(points, d.newSensorValuePoint(n.DeviceId, n.Source, name, &payload.Sensor.Name, n.SensorType, t, n.CreatedAt))
+			points = append(points, d.newSensorValuePoint(n.DeviceId, n.Source, name, payload.Sensor.Name, n.SensorType, t, n.CreatedAt))
 		}
 	case sensors.SensorType_Loudness:
 		var payload sensors.LoudnessSensorData
@@ -134,7 +132,7 @@ func (d *Data) parseSensorPayload(n *_business.Data, points []*write.Point) ([]*
 		for name, t := range map[string]sensors.SensorValue{
 			"loudness": *payload.Loudness,
 		} {
-			points = append(points, d.newSensorValuePoint(n.DeviceId, n.Source, name, &payload.Sensor.Name, n.SensorType, t, n.CreatedAt))
+			points = append(points, d.newSensorValuePoint(n.DeviceId, n.Source, name, payload.Sensor.Name, n.SensorType, t, n.CreatedAt))
 		}
 	}
 	return points, http.StatusCreated, nil
@@ -151,7 +149,7 @@ func (d *Data) parseGenericPayload(n *_business.Data, points []*write.Point) ([]
 		if name == "sensor" {
 			continue
 		}
-		points = append(points, d.newSensorValuePoint(n.DeviceId, n.Source, name, nil, nil, val, n.CreatedAt))
+		points = append(points, d.newSensorValuePoint(n.DeviceId, n.Source, name, "generic", nil, val, n.CreatedAt))
 	}
 	return points, http.StatusCreated, nil
 }
