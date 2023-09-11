@@ -44,23 +44,15 @@ func (d *Data) newSensorValuePoint(
 		"unit":     sensorValue.Unit,
 		"unitName": sensorValue.UnitName,
 	}
-	// Influxdb fields
-	fields := map[string]interface{}{
-		"value":    sensorValue.Value,
-		"deviceId": deviceId,
-		"source":   source,
-		"type":     _business.SensorValueType,
-		"name":     name,
-		"unit":     sensorValue.Unit,
-		"unitName": sensorValue.UnitName,
-	}
 	if sensorName != nil {
 		tags["sensorName"] = *sensorName
-		fields["sensorName"] = *sensorName
 	}
 	if sensorType != nil {
 		tags["sensorType"] = fmt.Sprintf("%d", sensorType)
-		fields["sensorType"] = fmt.Sprintf("%d", sensorType)
+	}
+	// Influxdb fields
+	fields := map[string]interface{}{
+		"value": sensorValue.Value,
 	}
 	util.Log.Debugf("NewPoint@%s %s/%s - %s - %s", t.Local().Format("23:05:00.000"), deviceId+"/"+source, tags, fields)
 	return influxdb2.NewPoint(deviceId+"/"+source, tags, fields, t)
