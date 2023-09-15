@@ -170,6 +170,7 @@ func (d *Data) Create(createData _business.DataCreate) (*_business.DataCreateRes
 		n.CreatedAt = create.Meta.MeasuredAt
 		n.UpdatedAt = time.Now()
 		response.Data = append(response.Data, n)
+		util.Log.Debugf("DataCreateRequest: %v", n)
 
 		switch create.DataType {
 		case _business.SensorValue:
